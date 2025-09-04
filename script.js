@@ -4,9 +4,21 @@ document.addEventListener('DOMContentLoaded', function() {
     const landingPage = document.getElementById('landing-page');
     const mainWebsite = document.getElementById('main-website');
     const emailForm = document.getElementById('email-form');
+    const skipBtn = document.getElementById('skip-btn');
     
     // Check if user has already submitted the form
     checkReturningVisitor();
+    
+    // Skip button handler
+    skipBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        // Mark as skipped in localStorage (optional, for analytics or future reference)
+        localStorage.setItem('formSkipped', 'true');
+        
+        // Transition to main site without saving guest info
+        transitionToMainSite();
+    });
     
     // Function to check for returning visitors
     function checkReturningVisitor() {

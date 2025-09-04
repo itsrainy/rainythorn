@@ -212,6 +212,31 @@ h1, h2, h3 {
     transform: translateX(5px);
 }
 
+/* Skip Option Styles */
+.skip-option {
+    margin-top: 20px;
+    text-align: center;
+}
+
+.skip-btn {
+    background: transparent;
+    color: var(--text-muted);
+    border: none;
+    padding: 8px 0;
+    border-radius: 0;
+    font-size: 1rem;
+    font-weight: 400;
+    font-style: italic;
+    cursor: pointer;
+    transition: var(--transition);
+    display: inline-block;
+}
+
+.skip-btn:hover {
+    color: var(--text-dark);
+    transform: none;
+}
+
 /* Main Website Styles */
 .navbar {
     background: var(--text-light);
@@ -309,39 +334,71 @@ section h2::after {
 }
 
 .story-content {
-    display: grid;
-    grid-template-columns: 2fr 1fr;
-    gap: 50px;
-    align-items: start;
+    max-width: 900px;
+    margin: 0 auto;
 }
 
-.story-text h3 {
-    font-size: 1.5rem;
-    color: var(--primary-color);
-    margin-bottom: 15px;
-    margin-top: 30px;
+.story-intro, .story-conclusion {
+    text-align: center;
+    margin-bottom: 40px;
 }
 
-.story-text h3:first-child {
-    margin-top: 0;
-}
-
-.story-text p {
+.story-intro p, .story-conclusion p {
     font-size: 1.1rem;
     line-height: 1.8;
     color: var(--text-muted);
 }
 
-.story-photos {
+.story-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    align-items: center;
+    margin-bottom: 40px;
+}
+
+.story-row.reverse {
+    direction: rtl;
+}
+
+.story-row.reverse * {
+    direction: ltr;
+}
+
+.story-text-block p {
+    font-size: 1.1rem;
+    line-height: 1.8;
+    color: var(--text-muted);
+}
+
+.story-photo-block {
     display: flex;
-    flex-direction: column;
-    gap: 20px;
+    justify-content: center;
 }
 
 .story-photo {
     width: 100%;
+    max-width: 350px;
     border-radius: var(--border-radius);
     box-shadow: var(--shadow);
+}
+
+.story-cats-section {
+    margin: 50px 0;
+    text-align: center;
+}
+
+.story-cats-photos {
+    display: flex;
+    gap: 30px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.story-cats-photos .story-photo {
+    width: 300px;
+    height: 300px;
+    object-fit: cover;
 }
 
 /* Photos Section */
@@ -541,18 +598,23 @@ section h2::after {
         display: none;
     }
     
-    .story-content {
+    .story-row {
         grid-template-columns: 1fr;
-        gap: 30px;
+        gap: 25px;
+        text-align: center;
     }
     
-    .story-photos {
-        flex-direction: row;
-        overflow-x: auto;
+    .story-row.reverse {
+        direction: ltr;
     }
     
-    .story-photo {
-        min-width: 200px;
+    .story-cats-photos {
+        gap: 20px;
+    }
+    
+    .story-cats-photos .story-photo {
+        width: 250px;
+        height: 250px;
     }
     
     .photo-gallery {
