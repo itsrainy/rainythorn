@@ -728,6 +728,14 @@ section h2::after {
         display: none;
     }
     
+    .main-content {
+        margin-top: 70px;
+    }
+    
+    .nav-container {
+        padding: 12px 20px;
+    }
+    
     .story-row {
         grid-template-columns: 1fr;
         gap: 25px;
@@ -760,7 +768,7 @@ section h2::after {
         font-size: 2.5rem;
     }
     
-    section {
+    .section {
         padding: 50px 0;
     }
     
@@ -792,5 +800,22 @@ section h2::after {
     
     .banner-content h1 {
         font-size: 2rem;
+    }
+    
+    .main-content {
+        margin-top: 60px;
+    }
+    
+    .nav-container {
+        padding: 10px 15px;
+    }
+    
+    .nav-logo {
+        font-size: 1.5rem;
+    }
+    
+    .hero-banner {
+        height: 50vh;
+        min-height: 400px;
     }
 }
