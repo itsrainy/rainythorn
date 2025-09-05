@@ -431,6 +431,38 @@ section h2::after {
     transform: scale(1.1);
 }
 
+/* Cats Mosaic */
+.cats-mosaic {
+    grid-template-columns: repeat(6, 1fr);
+    max-width: 600px;
+    gap: 6px;
+}
+
+/* Creative Works Section */
+.creative-works-section {
+    margin: 50px 0;
+    text-align: center;
+}
+
+.creative-intro {
+    max-width: 700px;
+    margin: 0 auto 30px;
+    text-align: center;
+}
+
+.creative-intro p {
+    font-size: 1.1rem;
+    line-height: 1.8;
+    color: var(--text-muted);
+    margin-bottom: 20px;
+}
+
+.creative-mosaic {
+    grid-template-columns: repeat(5, 1fr);
+    max-width: 600px;
+    gap: 6px;
+}
+
 /* Responsive grid adjustments */
 @media (max-width: 768px) {
     .photo-mosaic {
@@ -440,7 +472,17 @@ section h2::after {
         gap: 6px;
     }
     
-    .engagement-photos-section {
+    .cats-mosaic {
+        grid-template-columns: repeat(4, 1fr);
+        max-width: 400px;
+    }
+    
+    .creative-mosaic {
+        grid-template-columns: repeat(3, 1fr);
+        max-width: 400px;
+    }
+    
+    .engagement-photos-section, .story-cats-section, .creative-works-section {
         margin: 40px 0;
     }
 }
@@ -510,9 +552,62 @@ section h2::after {
         margin: 30px 0;
     }
     
+    /* Cats Mosaic Mobile Layout */
+    .cats-mosaic {
+        grid-template-columns: repeat(3, 1fr);
+        grid-template-rows: repeat(3, 1fr);
+        max-width: 320px;
+        gap: 4px;
+        aspect-ratio: 3/3;
+    }
+    
+    .cats-mosaic .mosaic-photo:nth-child(n+10) {
+        display: none;
+    }
+    
+    /* Creative Works Mobile Layout */
+    .creative-mosaic {
+        grid-template-columns: repeat(3, 1fr);
+        grid-template-rows: repeat(3, 1fr);
+        max-width: 320px;
+        gap: 4px;
+        aspect-ratio: 3/3;
+    }
+    
+    .creative-mosaic .mosaic-photo:nth-child(n+10) {
+        display: none;
+    }
+    
+    .creative-works-section {
+        margin: 30px 0;
+    }
+    
+    .creative-intro p {
+        font-size: 1rem;
+        margin-bottom: 15px;
+    }
+    
     /* Add a "view all" indicator */
     .engagement-photos-section::after {
         content: "Tap any photo to view all 12 photos";
+        display: block;
+        font-size: 0.9rem;
+        color: var(--text-muted);
+        margin-top: 15px;
+        font-style: italic;
+    }
+    
+    .story-cats-section::after {
+        content: "Tap any photo to view all 23 cat photos";
+        display: block;
+        font-size: 0.9rem;
+        color: var(--text-muted);
+        margin-top: 15px;
+        font-style: italic;
+    }
+    
+    .creative-works-section::after {
+        content: "Tap any photo to view all 15 creative works";
         display: block;
         font-size: 0.9rem;
         color: var(--text-muted);
