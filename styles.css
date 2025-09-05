@@ -47,16 +47,6 @@ h1, h2, h3 {
     display: block;
 }
 
-.page-transition {
-    opacity: 0;
-    transform: translateY(20px);
-    transition: var(--transition);
-}
-
-.page-transition.fade-in {
-    opacity: 1;
-    transform: translateY(0);
-}
 
 /* Landing Page Styles */
 .hero-section {
