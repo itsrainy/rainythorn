@@ -399,10 +399,11 @@ section h2::after {
 
 .photo-mosaic {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(6, 1fr);
     gap: 8px;
-    max-width: 600px;
+    max-width: 700px;
     margin: 0 auto;
+    grid-auto-rows: 80px;
 }
 
 .mosaic-photo {
@@ -411,7 +412,6 @@ section h2::after {
     border-radius: 6px;
     cursor: pointer;
     transition: var(--transition);
-    aspect-ratio: 1;
 }
 
 .mosaic-photo img {
@@ -431,11 +431,163 @@ section h2::after {
     transform: scale(1.1);
 }
 
-/* Cats Mosaic */
+/* Default engagement photo layout - dynamic asymmetrical grid for 12 photos */
+.photo-mosaic:not(.cats-mosaic):not(.creative-mosaic) .mosaic-photo:nth-child(1) {
+    grid-column: 1 / 3;
+    grid-row: 1 / 3;
+}
+
+.photo-mosaic:not(.cats-mosaic):not(.creative-mosaic) .mosaic-photo:nth-child(2) {
+    grid-column: 3 / 5;
+    grid-row: 1 / 3;
+}
+
+.photo-mosaic:not(.cats-mosaic):not(.creative-mosaic) .mosaic-photo:nth-child(3) {
+    grid-column: 5 / 6;
+    grid-row: 1 / 2;
+}
+
+.photo-mosaic:not(.cats-mosaic):not(.creative-mosaic) .mosaic-photo:nth-child(4) {
+    grid-column: 6 / 7;
+    grid-row: 1 / 2;
+}
+
+.photo-mosaic:not(.cats-mosaic):not(.creative-mosaic) .mosaic-photo:nth-child(5) {
+    grid-column: 5 / 7;
+    grid-row: 2 / 3;
+}
+
+.photo-mosaic:not(.cats-mosaic):not(.creative-mosaic) .mosaic-photo:nth-child(6) {
+    grid-column: 1 / 2;
+    grid-row: 3 / 4;
+}
+
+.photo-mosaic:not(.cats-mosaic):not(.creative-mosaic) .mosaic-photo:nth-child(7) {
+    grid-column: 2 / 4;
+    grid-row: 3 / 5;
+}
+
+.photo-mosaic:not(.cats-mosaic):not(.creative-mosaic) .mosaic-photo:nth-child(8) {
+    grid-column: 4 / 6;
+    grid-row: 3 / 4;
+}
+
+.photo-mosaic:not(.cats-mosaic):not(.creative-mosaic) .mosaic-photo:nth-child(9) {
+    grid-column: 6 / 7;
+    grid-row: 3 / 5;
+}
+
+.photo-mosaic:not(.cats-mosaic):not(.creative-mosaic) .mosaic-photo:nth-child(10) {
+    grid-column: 1 / 2;
+    grid-row: 4 / 5;
+}
+
+.photo-mosaic:not(.cats-mosaic):not(.creative-mosaic) .mosaic-photo:nth-child(11) {
+    grid-column: 4 / 5;
+    grid-row: 4 / 5;
+}
+
+.photo-mosaic:not(.cats-mosaic):not(.creative-mosaic) .mosaic-photo:nth-child(12) {
+    grid-column: 5 / 6;
+    grid-row: 4 / 5;
+}
+
+/* Cats Mosaic - dynamic layout for 18 photos */
 .cats-mosaic {
     grid-template-columns: repeat(6, 1fr);
-    max-width: 600px;
+    max-width: 700px;
     gap: 6px;
+    grid-auto-rows: 80px;
+}
+
+.cats-mosaic .mosaic-photo:nth-child(1) {
+    grid-column: 1 / 3;
+    grid-row: 1 / 3;
+}
+
+.cats-mosaic .mosaic-photo:nth-child(2) {
+    grid-column: 3 / 5;
+    grid-row: 1 / 3;
+}
+
+.cats-mosaic .mosaic-photo:nth-child(3) {
+    grid-column: 5 / 7;
+    grid-row: 1 / 2;
+}
+
+.cats-mosaic .mosaic-photo:nth-child(4) {
+    grid-column: 5 / 6;
+    grid-row: 2 / 3;
+}
+
+.cats-mosaic .mosaic-photo:nth-child(5) {
+    grid-column: 6 / 7;
+    grid-row: 2 / 3;
+}
+
+.cats-mosaic .mosaic-photo:nth-child(6) {
+    grid-column: 1 / 2;
+    grid-row: 3 / 4;
+}
+
+.cats-mosaic .mosaic-photo:nth-child(7) {
+    grid-column: 2 / 4;
+    grid-row: 3 / 5;
+}
+
+.cats-mosaic .mosaic-photo:nth-child(8) {
+    grid-column: 4 / 6;
+    grid-row: 3 / 4;
+}
+
+.cats-mosaic .mosaic-photo:nth-child(9) {
+    grid-column: 6 / 7;
+    grid-row: 3 / 5;
+}
+
+.cats-mosaic .mosaic-photo:nth-child(10) {
+    grid-column: 1 / 2;
+    grid-row: 4 / 5;
+}
+
+.cats-mosaic .mosaic-photo:nth-child(11) {
+    grid-column: 4 / 5;
+    grid-row: 4 / 5;
+}
+
+.cats-mosaic .mosaic-photo:nth-child(12) {
+    grid-column: 5 / 6;
+    grid-row: 4 / 5;
+}
+
+.cats-mosaic .mosaic-photo:nth-child(13) {
+    grid-column: 1 / 3;
+    grid-row: 5 / 7;
+}
+
+.cats-mosaic .mosaic-photo:nth-child(14) {
+    grid-column: 3 / 4;
+    grid-row: 5 / 6;
+}
+
+.cats-mosaic .mosaic-photo:nth-child(15) {
+    grid-column: 4 / 6;
+    grid-row: 5 / 6;
+}
+
+.cats-mosaic .mosaic-photo:nth-child(16) {
+    grid-column: 6 / 7;
+    grid-row: 5 / 6;
+}
+
+.cats-mosaic .mosaic-photo:nth-child(17) {
+    grid-column: 3 / 5;
+    grid-row: 6 / 7;
+}
+
+.cats-mosaic .mosaic-photo:nth-child(18) {
+    grid-column: 5 / 7;
+    grid-row: 6 / 7;
 }
 
 /* Creative Works Section */
@@ -458,28 +610,133 @@ section h2::after {
 }
 
 .creative-mosaic {
-    grid-template-columns: repeat(5, 1fr);
-    max-width: 600px;
+    grid-template-columns: repeat(6, 1fr);
+    max-width: 700px;
     gap: 6px;
+    grid-auto-rows: 80px;
+}
+
+.creative-mosaic .mosaic-photo:nth-child(1) {
+    grid-column: 1 / 3;
+    grid-row: 1 / 3;
+}
+
+.creative-mosaic .mosaic-photo:nth-child(2) {
+    grid-column: 3 / 4;
+    grid-row: 1 / 2;
+}
+
+.creative-mosaic .mosaic-photo:nth-child(3) {
+    grid-column: 4 / 6;
+    grid-row: 1 / 2;
+}
+
+.creative-mosaic .mosaic-photo:nth-child(4) {
+    grid-column: 6 / 7;
+    grid-row: 1 / 3;
+}
+
+.creative-mosaic .mosaic-photo:nth-child(5) {
+    grid-column: 3 / 5;
+    grid-row: 2 / 3;
+}
+
+.creative-mosaic .mosaic-photo:nth-child(6) {
+    grid-column: 5 / 6;
+    grid-row: 2 / 3;
+}
+
+.creative-mosaic .mosaic-photo:nth-child(7) {
+    grid-column: 1 / 2;
+    grid-row: 3 / 4;
+}
+
+.creative-mosaic .mosaic-photo:nth-child(8) {
+    grid-column: 2 / 4;
+    grid-row: 3 / 5;
+}
+
+.creative-mosaic .mosaic-photo:nth-child(9) {
+    grid-column: 4 / 5;
+    grid-row: 3 / 4;
+}
+
+.creative-mosaic .mosaic-photo:nth-child(10) {
+    grid-column: 5 / 7;
+    grid-row: 3 / 5;
+}
+
+.creative-mosaic .mosaic-photo:nth-child(11) {
+    grid-column: 1 / 2;
+    grid-row: 4 / 5;
+}
+
+.creative-mosaic .mosaic-photo:nth-child(12) {
+    grid-column: 4 / 5;
+    grid-row: 4 / 5;
+}
+
+.creative-mosaic .mosaic-photo:nth-child(13) {
+    grid-column: 1 / 3;
+    grid-row: 5 / 6;
+}
+
+.creative-mosaic .mosaic-photo:nth-child(14) {
+    grid-column: 3 / 5;
+    grid-row: 5 / 6;
+}
+
+.creative-mosaic .mosaic-photo:nth-child(15) {
+    grid-column: 5 / 7;
+    grid-row: 5 / 6;
 }
 
 /* Responsive grid adjustments */
 @media (max-width: 768px) {
     .photo-mosaic {
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: repeat(4, 1fr);
         max-width: 100%;
         padding: 0 20px;
         gap: 6px;
+        grid-auto-rows: 60px;
     }
     
     .cats-mosaic {
         grid-template-columns: repeat(4, 1fr);
-        max-width: 400px;
+        max-width: 100%;
+        grid-auto-rows: 60px;
     }
     
     .creative-mosaic {
-        grid-template-columns: repeat(3, 1fr);
-        max-width: 400px;
+        grid-template-columns: repeat(4, 1fr);
+        max-width: 100%;
+        grid-auto-rows: 60px;
+    }
+    
+    /* Maintain some magazine-style layouts on tablet */
+    .photo-mosaic:not(.cats-mosaic):not(.creative-mosaic) .mosaic-photo:nth-child(1) {
+        grid-column: 1 / 3;
+        grid-row: 1 / 3;
+    }
+    
+    .cats-mosaic .mosaic-photo:nth-child(1) {
+        grid-column: 1 / 3;
+        grid-row: 1 / 3;
+    }
+    
+    .cats-mosaic .mosaic-photo:nth-child(7) {
+        grid-column: 2 / 4;
+        grid-row: 3 / 5;
+    }
+    
+    .creative-mosaic .mosaic-photo:nth-child(1) {
+        grid-column: 1 / 3;
+        grid-row: 1 / 3;
+    }
+    
+    .creative-mosaic .mosaic-photo:nth-child(8) {
+        grid-column: 2 / 4;
+        grid-row: 3 / 5;
     }
     
     .engagement-photos-section, .story-cats-section, .creative-works-section {
@@ -488,100 +745,254 @@ section h2::after {
 }
 
 @media (max-width: 480px) {
-    /* Default engagement photos layout (no specific class) */
-    .photo-mosaic:not(.cats-mosaic):not(.creative-mosaic) {
+    /* Mobile magazine-style layouts - much more dynamic! */
+    .photo-mosaic,
+    .cats-mosaic,
+    .creative-mosaic {
         display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        grid-template-rows: repeat(3, 1fr);
+        grid-template-columns: repeat(6, 1fr);
+        grid-auto-rows: 50px;
         max-width: 100%;
         padding: 0 15px;
         gap: 4px;
-        aspect-ratio: 4/3;
     }
     
-    /* Create an interesting mobile layout with the 12 engagement photos */
+    /* Engagement Photos - Dynamic Mobile Layout for 12 photos */
     .photo-mosaic:not(.cats-mosaic):not(.creative-mosaic) .mosaic-photo:nth-child(1) {
         grid-column: 1 / 3;
         grid-row: 1 / 3;
     }
     
     .photo-mosaic:not(.cats-mosaic):not(.creative-mosaic) .mosaic-photo:nth-child(2) {
-        grid-column: 3 / 4;
-        grid-row: 1 / 2;
+        grid-column: 3 / 5;
+        grid-row: 1 / 3;
     }
     
     .photo-mosaic:not(.cats-mosaic):not(.creative-mosaic) .mosaic-photo:nth-child(3) {
-        grid-column: 4 / 5;
+        grid-column: 5 / 6;
         grid-row: 1 / 2;
     }
     
     .photo-mosaic:not(.cats-mosaic):not(.creative-mosaic) .mosaic-photo:nth-child(4) {
-        grid-column: 3 / 5;
-        grid-row: 2 / 3;
+        grid-column: 6 / 7;
+        grid-row: 1 / 2;
     }
     
     .photo-mosaic:not(.cats-mosaic):not(.creative-mosaic) .mosaic-photo:nth-child(5) {
+        grid-column: 5 / 7;
+        grid-row: 2 / 3;
+    }
+    
+    .photo-mosaic:not(.cats-mosaic):not(.creative-mosaic) .mosaic-photo:nth-child(6) {
         grid-column: 1 / 2;
         grid-row: 3 / 4;
     }
     
-    .photo-mosaic:not(.cats-mosaic):not(.creative-mosaic) .mosaic-photo:nth-child(6) {
-        grid-column: 2 / 3;
-        grid-row: 3 / 4;
-    }
-    
     .photo-mosaic:not(.cats-mosaic):not(.creative-mosaic) .mosaic-photo:nth-child(7) {
-        grid-column: 3 / 4;
-        grid-row: 3 / 4;
+        grid-column: 2 / 4;
+        grid-row: 3 / 5;
     }
     
     .photo-mosaic:not(.cats-mosaic):not(.creative-mosaic) .mosaic-photo:nth-child(8) {
+        grid-column: 4 / 6;
+        grid-row: 3 / 4;
+    }
+    
+    .photo-mosaic:not(.cats-mosaic):not(.creative-mosaic) .mosaic-photo:nth-child(9) {
+        grid-column: 6 / 7;
+        grid-row: 3 / 5;
+    }
+    
+    .photo-mosaic:not(.cats-mosaic):not(.creative-mosaic) .mosaic-photo:nth-child(10) {
+        grid-column: 1 / 2;
+        grid-row: 4 / 5;
+    }
+    
+    .photo-mosaic:not(.cats-mosaic):not(.creative-mosaic) .mosaic-photo:nth-child(11) {
+        grid-column: 4 / 5;
+        grid-row: 4 / 5;
+    }
+    
+    .photo-mosaic:not(.cats-mosaic):not(.creative-mosaic) .mosaic-photo:nth-child(12) {
+        grid-column: 5 / 6;
+        grid-row: 4 / 5;
+    }
+    
+    /* Cats Mosaic - Dynamic Mobile Layout */
+    .cats-mosaic .mosaic-photo:nth-child(1) {
+        grid-column: 1 / 3;
+        grid-row: 1 / 3;
+    }
+    
+    .cats-mosaic .mosaic-photo:nth-child(2) {
+        grid-column: 3 / 5;
+        grid-row: 1 / 3;
+    }
+    
+    .cats-mosaic .mosaic-photo:nth-child(3) {
+        grid-column: 5 / 7;
+        grid-row: 1 / 2;
+    }
+    
+    .cats-mosaic .mosaic-photo:nth-child(4) {
+        grid-column: 5 / 6;
+        grid-row: 2 / 3;
+    }
+    
+    .cats-mosaic .mosaic-photo:nth-child(5) {
+        grid-column: 6 / 7;
+        grid-row: 2 / 3;
+    }
+    
+    .cats-mosaic .mosaic-photo:nth-child(6) {
+        grid-column: 1 / 2;
+        grid-row: 3 / 4;
+    }
+    
+    .cats-mosaic .mosaic-photo:nth-child(7) {
+        grid-column: 2 / 4;
+        grid-row: 3 / 5;
+    }
+    
+    .cats-mosaic .mosaic-photo:nth-child(8) {
+        grid-column: 4 / 6;
+        grid-row: 3 / 4;
+    }
+    
+    .cats-mosaic .mosaic-photo:nth-child(9) {
+        grid-column: 6 / 7;
+        grid-row: 3 / 5;
+    }
+    
+    .cats-mosaic .mosaic-photo:nth-child(10) {
+        grid-column: 1 / 2;
+        grid-row: 4 / 5;
+    }
+    
+    .cats-mosaic .mosaic-photo:nth-child(11) {
+        grid-column: 4 / 5;
+        grid-row: 4 / 5;
+    }
+    
+    .cats-mosaic .mosaic-photo:nth-child(12) {
+        grid-column: 5 / 6;
+        grid-row: 4 / 5;
+    }
+    
+    .cats-mosaic .mosaic-photo:nth-child(13) {
+        grid-column: 1 / 3;
+        grid-row: 5 / 7;
+    }
+    
+    .cats-mosaic .mosaic-photo:nth-child(14) {
+        grid-column: 3 / 4;
+        grid-row: 5 / 6;
+    }
+    
+    .cats-mosaic .mosaic-photo:nth-child(15) {
+        grid-column: 4 / 6;
+        grid-row: 5 / 6;
+    }
+    
+    .cats-mosaic .mosaic-photo:nth-child(16) {
+        grid-column: 6 / 7;
+        grid-row: 5 / 6;
+    }
+    
+    .cats-mosaic .mosaic-photo:nth-child(17) {
+        grid-column: 3 / 5;
+        grid-row: 6 / 7;
+    }
+    
+    .cats-mosaic .mosaic-photo:nth-child(18) {
+        grid-column: 5 / 7;
+        grid-row: 6 / 7;
+    }
+    
+    /* Creative Works - Dynamic Mobile Layout */
+    .creative-mosaic .mosaic-photo:nth-child(1) {
+        grid-column: 1 / 3;
+        grid-row: 1 / 3;
+    }
+    
+    .creative-mosaic .mosaic-photo:nth-child(2) {
+        grid-column: 3 / 4;
+        grid-row: 1 / 2;
+    }
+    
+    .creative-mosaic .mosaic-photo:nth-child(3) {
+        grid-column: 4 / 6;
+        grid-row: 1 / 2;
+    }
+    
+    .creative-mosaic .mosaic-photo:nth-child(4) {
+        grid-column: 6 / 7;
+        grid-row: 1 / 3;
+    }
+    
+    .creative-mosaic .mosaic-photo:nth-child(5) {
+        grid-column: 3 / 5;
+        grid-row: 2 / 3;
+    }
+    
+    .creative-mosaic .mosaic-photo:nth-child(6) {
+        grid-column: 5 / 6;
+        grid-row: 2 / 3;
+    }
+    
+    .creative-mosaic .mosaic-photo:nth-child(7) {
+        grid-column: 1 / 2;
+        grid-row: 3 / 4;
+    }
+    
+    .creative-mosaic .mosaic-photo:nth-child(8) {
+        grid-column: 2 / 4;
+        grid-row: 3 / 5;
+    }
+    
+    .creative-mosaic .mosaic-photo:nth-child(9) {
         grid-column: 4 / 5;
         grid-row: 3 / 4;
     }
     
-    /* Hide extra photos on very small screens to maintain clean layout */
-    .photo-mosaic:not(.cats-mosaic):not(.creative-mosaic) .mosaic-photo:nth-child(n+9) {
-        display: none;
+    .creative-mosaic .mosaic-photo:nth-child(10) {
+        grid-column: 5 / 7;
+        grid-row: 3 / 5;
+    }
+    
+    .creative-mosaic .mosaic-photo:nth-child(11) {
+        grid-column: 1 / 2;
+        grid-row: 4 / 5;
+    }
+    
+    .creative-mosaic .mosaic-photo:nth-child(12) {
+        grid-column: 4 / 5;
+        grid-row: 4 / 5;
+    }
+    
+    .creative-mosaic .mosaic-photo:nth-child(13) {
+        grid-column: 1 / 3;
+        grid-row: 5 / 6;
+    }
+    
+    .creative-mosaic .mosaic-photo:nth-child(14) {
+        grid-column: 3 / 5;
+        grid-row: 5 / 6;
+    }
+    
+    .creative-mosaic .mosaic-photo:nth-child(15) {
+        grid-column: 5 / 7;
+        grid-row: 5 / 6;
     }
     
     .mosaic-photo {
         border-radius: 4px;
     }
     
-    .engagement-photos-section {
+    .engagement-photos-section, .story-cats-section, .creative-works-section {
         margin: 30px 0;
     }
-    
-    /* Cats Mosaic Mobile Layout */
-    .cats-mosaic {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        grid-template-rows: repeat(3, 1fr);
-        max-width: 320px;
-        padding: 0 15px;
-        gap: 4px;
-        aspect-ratio: 3/3;
-    }
-    
-    .cats-mosaic .mosaic-photo:nth-child(n+10) {
-        display: none;
-    }
-    
-    /* Creative Works Mobile Layout */
-    .creative-mosaic {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        grid-template-rows: repeat(3, 1fr);
-        max-width: 320px;
-        padding: 0 15px;
-        gap: 4px;
-        aspect-ratio: 3/3;
-    }
-    
-    .creative-mosaic .mosaic-photo:nth-child(n+10) {
-        display: none;
-    }
+}
     
     .creative-works-section {
         margin: 30px 0;
@@ -594,7 +1005,7 @@ section h2::after {
     
     /* Add a "view all" indicator */
     .engagement-photos-section::after {
-        content: "Tap any photo to view all 12 photos";
+        content: "Click/tap any photo to view";
         display: block;
         font-size: 0.9rem;
         color: var(--text-muted);
@@ -603,7 +1014,7 @@ section h2::after {
     }
     
     .story-cats-section::after {
-        content: "Tap any photo to view all 23 cat photos";
+        content: "Click/tap any photo to view";
         display: block;
         font-size: 0.9rem;
         color: var(--text-muted);
@@ -612,7 +1023,7 @@ section h2::after {
     }
     
     .creative-works-section::after {
-        content: "Tap any photo to view all 15 creative works";
+        content: "Click/tap any photo to view";
         display: block;
         font-size: 0.9rem;
         color: var(--text-muted);
