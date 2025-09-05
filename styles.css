@@ -401,6 +401,61 @@ section h2::after {
     object-fit: cover;
 }
 
+/* Engagement Photo Mosaic */
+.engagement-photos-section {
+    margin: 50px 0;
+    text-align: center;
+}
+
+.photo-mosaic {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.mosaic-photo {
+    position: relative;
+    overflow: hidden;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: var(--transition);
+    aspect-ratio: 1;
+}
+
+.mosaic-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: var(--transition);
+}
+
+.mosaic-photo:hover {
+    transform: scale(1.05);
+    box-shadow: var(--shadow);
+    z-index: 10;
+}
+
+.mosaic-photo:hover img {
+    transform: scale(1.1);
+}
+
+/* Responsive grid adjustments */
+@media (max-width: 768px) {
+    .photo-mosaic {
+        grid-template-columns: repeat(3, 1fr);
+        max-width: 400px;
+    }
+}
+
+@media (max-width: 480px) {
+    .photo-mosaic {
+        grid-template-columns: repeat(2, 1fr);
+        max-width: 300px;
+    }
+}
+
 /* Photos Section */
 .photos-section {
     background: var(--accent-color);

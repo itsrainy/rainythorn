@@ -315,3 +315,216 @@ function addUpdateContactLink() {
 setTimeout(() => {
     addUpdateContactLink();
 }, 1000);
+
+// Photo Mosaic Functionality
+function initPhotoMosaic() {
+    const mosaicPhotos = document.querySelectorAll('.mosaic-photo');
+    let lightbox = null;
+    let currentPhotoIndex = 0;
+    
+    // Create lightbox
+    function createLightbox() {
+        if (lightbox) return;
+        
+        lightbox = document.createElement('div');
+        lightbox.className = 'photo-lightbox';
+        lightbox.innerHTML = `
+            <div class="lightbox-backdrop"></div>
+            <div class="lightbox-content">
+                <button class="lightbox-close">&times;</button>
+                <button class="lightbox-nav lightbox-prev">‹</button>
+                <img class="lightbox-image" src="" alt="">
+                <button class="lightbox-nav lightbox-next">›</button>
+                <div class="lightbox-counter">
+                    <span class="current-photo">1</span> / <span class="total-photos">${mosaicPhotos.length}</span>
+                </div>
+            </div>
+        `;
+        
+        // Add lightbox styles
+        const lightboxStyle = document.createElement('style');
+        lightboxStyle.textContent = `
+            .photo-lightbox {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                z-index: 1000;
+                display: none;
+            }
+            
+            .lightbox-backdrop {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.9);
+                cursor: pointer;
+            }
+            
+            .lightbox-content {
+                position: relative;
+                width: 100%;
+                height: 100%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            
+            .lightbox-image {
+                max-width: 90%;
+                max-height: 90%;
+                object-fit: contain;
+                border-radius: var(--border-radius);
+            }
+            
+            .lightbox-close {
+                position: absolute;
+                top: 20px;
+                right: 30px;
+                background: none;
+                border: none;
+                color: white;
+                font-size: 40px;
+                cursor: pointer;
+                z-index: 1001;
+            }
+            
+            .lightbox-nav {
+                position: absolute;
+                top: 50%;
+                transform: translateY(-50%);
+                background: rgba(255, 255, 255, 0.1);
+                border: none;
+                color: white;
+                font-size: 30px;
+                padding: 10px 15px;
+                cursor: pointer;
+                border-radius: 4px;
+                transition: var(--transition);
+            }
+            
+            .lightbox-nav:hover {
+                background: rgba(255, 255, 255, 0.2);
+            }
+            
+            .lightbox-prev {
+                left: 30px;
+            }
+            
+            .lightbox-next {
+                right: 30px;
+            }
+            
+            .lightbox-counter {
+                position: absolute;
+                bottom: 30px;
+                left: 50%;
+                transform: translateX(-50%);
+                color: white;
+                background: rgba(0, 0, 0, 0.5);
+                padding: 10px 20px;
+                border-radius: 20px;
+                font-size: 14px;
+            }
+            
+            @media (max-width: 768px) {
+                .lightbox-nav {
+                    font-size: 24px;
+                    padding: 8px 12px;
+                }
+                
+                .lightbox-prev {
+                    left: 15px;
+                }
+                
+                .lightbox-next {
+                    right: 15px;
+                }
+                
+                .lightbox-close {
+                    top: 15px;
+                    right: 15px;
+                    font-size: 32px;
+                }
+            }
+        `;
+        
+        document.head.appendChild(lightboxStyle);
+        document.body.appendChild(lightbox);
+        
+        // Add event listeners
+        lightbox.querySelector('.lightbox-backdrop').addEventListener('click', closeLightbox);
+        lightbox.querySelector('.lightbox-close').addEventListener('click', closeLightbox);
+        lightbox.querySelector('.lightbox-prev').addEventListener('click', () => navigatePhoto(-1));
+        lightbox.querySelector('.lightbox-next').addEventListener('click', () => navigatePhoto(1));
+        
+        // Keyboard navigation
+        document.addEventListener('keydown', function(e) {
+            if (lightbox.style.display === 'block') {
+                switch(e.key) {
+                    case 'Escape':
+                        closeLightbox();
+                        break;
+                    case 'ArrowLeft':
+                        navigatePhoto(-1);
+                        break;
+                    case 'ArrowRight':
+                        navigatePhoto(1);
+                        break;
+                }
+            }
+        });
+    }
+    
+    // Open lightbox
+    function openLightbox(index) {
+        createLightbox();
+        currentPhotoIndex = index;
+        updateLightboxImage();
+        lightbox.style.display = 'block';
+        document.body.style.overflow = 'hidden';
+    }
+    
+    // Close lightbox
+    function closeLightbox() {
+        if (lightbox) {
+            lightbox.style.display = 'none';
+            document.body.style.overflow = '';
+        }
+    }
+    
+    // Navigate photos
+    function navigatePhoto(direction) {
+        currentPhotoIndex += direction;
+        if (currentPhotoIndex < 0) {
+            currentPhotoIndex = mosaicPhotos.length - 1;
+        } else if (currentPhotoIndex >= mosaicPhotos.length) {
+            currentPhotoIndex = 0;
+        }
+        updateLightboxImage();
+    }
+    
+    // Update lightbox image
+    function updateLightboxImage() {
+        const photo = mosaicPhotos[currentPhotoIndex];
+        const img = lightbox.querySelector('.lightbox-image');
+        const counter = lightbox.querySelector('.current-photo');
+        
+        img.src = photo.dataset.src;
+        counter.textContent = currentPhotoIndex + 1;
+    }
+    
+    // Add click handlers to mosaic photos
+    mosaicPhotos.forEach((photo, index) => {
+        photo.addEventListener('click', () => openLightbox(index));
+        photo.style.cursor = 'pointer';
+    });
+}
+
+// Initialize photo mosaic when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(initPhotoMosaic, 500);
+});
