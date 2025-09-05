@@ -1035,6 +1035,7 @@ section h2::after {
 /* Photos Section */
 .photos-section {
     background: var(--accent-color);
+    padding-top: 40px; /* Reduced gap from story section */
 }
 
 .photo-gallery {
