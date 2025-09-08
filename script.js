@@ -321,6 +321,7 @@ function initPhotoMosaic() {
     const mosaicPhotos = document.querySelectorAll('.mosaic-photo');
     let lightbox = null;
     let currentPhotoIndex = 0;
+    let isAnimating = false;
     
     // Create lightbox
     function createLightbox() {
@@ -467,8 +468,8 @@ function initPhotoMosaic() {
         // Add event listeners
         lightbox.querySelector('.lightbox-backdrop').addEventListener('click', closeLightbox);
         lightbox.querySelector('.lightbox-close').addEventListener('click', closeLightbox);
-        lightbox.querySelector('.lightbox-prev').addEventListener('click', () => navigatePhoto(-1));
-        lightbox.querySelector('.lightbox-next').addEventListener('click', () => navigatePhoto(1));
+        lightbox.querySelector('.lightbox-prev').addEventListener('click', () => navigatePhotoButton(-1));
+        lightbox.querySelector('.lightbox-next').addEventListener('click', () => navigatePhotoButton(1));
         
         // Touch/swipe navigation
         let touchStartX = 0;
@@ -477,7 +478,6 @@ function initPhotoMosaic() {
         let touchEndY = 0;
         let touchCurrentX = 0;
         let isSwipping = false;
-        let isAnimating = false;
         const minSwipeDistance = 50; // Minimum distance for a valid swipe
         const swipeThreshold = 0.3; // Percentage of screen width to trigger swipe
         
@@ -565,10 +565,10 @@ function initPhotoMosaic() {
                         closeLightbox();
                         break;
                     case 'ArrowLeft':
-                        navigatePhoto(-1);
+                        navigatePhotoButton(-1);
                         break;
                     case 'ArrowRight':
-                        navigatePhoto(1);
+                        navigatePhotoButton(1);
                         break;
                 }
             }
@@ -592,10 +592,22 @@ function initPhotoMosaic() {
         }
     }
     
-    // Navigate photos
+    // Navigate photos (for swipe)
     function navigatePhoto(direction) {
         const nextIndex = getNextIndex(direction);
         slideToImage(nextIndex, direction);
+    }
+    
+    // Navigate photos (for buttons and keyboard)
+    function navigatePhotoButton(direction) {
+        if (isAnimating) return; // Prevent multiple clicks during animation
+        
+        const nextIndex = getNextIndex(direction);
+        isAnimating = true;
+        slideToImage(nextIndex, direction);
+        
+        // Reset animation flag after transition
+        setTimeout(() => { isAnimating = false; }, 300);
     }
     
     // Get next image index
