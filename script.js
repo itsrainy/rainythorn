@@ -378,6 +378,10 @@ function initPhotoMosaic() {
                 max-height: 90%;
                 object-fit: contain;
                 border-radius: var(--border-radius);
+                transition: transform 0.2s ease-out;
+                user-select: none;
+                -webkit-user-select: none;
+                -webkit-touch-callout: none;
             }
             
             .lightbox-close {
@@ -460,6 +464,71 @@ function initPhotoMosaic() {
         lightbox.querySelector('.lightbox-close').addEventListener('click', closeLightbox);
         lightbox.querySelector('.lightbox-prev').addEventListener('click', () => navigatePhoto(-1));
         lightbox.querySelector('.lightbox-next').addEventListener('click', () => navigatePhoto(1));
+        
+        // Touch/swipe navigation
+        let touchStartX = 0;
+        let touchStartY = 0;
+        let touchEndX = 0;
+        let touchEndY = 0;
+        let touchCurrentX = 0;
+        let isSwipping = false;
+        const minSwipeDistance = 50; // Minimum distance for a valid swipe
+        
+        const lightboxImage = lightbox.querySelector('.lightbox-image');
+        
+        lightboxImage.addEventListener('touchstart', function(e) {
+            touchStartX = e.changedTouches[0].screenX;
+            touchStartY = e.changedTouches[0].screenY;
+            isSwipping = true;
+            lightboxImage.style.transition = 'none';
+        }, { passive: true });
+        
+        lightboxImage.addEventListener('touchmove', function(e) {
+            if (!isSwipping) return;
+            
+            touchCurrentX = e.changedTouches[0].screenX;
+            const deltaX = touchCurrentX - touchStartX;
+            const deltaY = e.changedTouches[0].screenY - touchStartY;
+            
+            // Only apply transform if it's primarily a horizontal swipe
+            if (Math.abs(deltaX) > Math.abs(deltaY)) {
+                e.preventDefault(); // Prevent scrolling during horizontal swipe
+                const transform = `translateX(${deltaX * 0.3}px)`;
+                lightboxImage.style.transform = transform;
+            }
+        }, { passive: false });
+        
+        lightboxImage.addEventListener('touchend', function(e) {
+            if (!isSwipping) return;
+            
+            touchEndX = e.changedTouches[0].screenX;
+            touchEndY = e.changedTouches[0].screenY;
+            isSwipping = false;
+            
+            // Reset transform with transition
+            lightboxImage.style.transition = 'transform 0.2s ease-out';
+            lightboxImage.style.transform = 'translateX(0)';
+            
+            handleSwipe();
+        }, { passive: true });
+        
+        function handleSwipe() {
+            const deltaX = touchEndX - touchStartX;
+            const deltaY = touchEndY - touchStartY;
+            const absDeltaX = Math.abs(deltaX);
+            const absDeltaY = Math.abs(deltaY);
+            
+            // Only process horizontal swipes (ignore vertical scrolling)
+            if (absDeltaX > absDeltaY && absDeltaX > minSwipeDistance) {
+                if (deltaX > 0) {
+                    // Swipe right - go to previous image
+                    navigatePhoto(-1);
+                } else {
+                    // Swipe left - go to next image
+                    navigatePhoto(1);
+                }
+            }
+        }
         
         // Keyboard navigation
         document.addEventListener('keydown', function(e) {
