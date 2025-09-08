@@ -323,6 +323,119 @@ function initPhotoMosaic() {
     let currentPhotoIndex = 0;
     let isAnimating = false;
     
+    // Navigation logic - unified approach
+    function navigate(direction, useAnimation = false) {
+        if (isAnimating) return;
+        
+        const nextIndex = getNextIndex(direction);
+        
+        if (useAnimation) {
+            isAnimating = true;
+            slideToImage(nextIndex, direction);
+            setTimeout(() => { isAnimating = false; }, 300);
+        } else {
+            // Instant switch for buttons/keyboard
+            currentPhotoIndex = nextIndex;
+            updateImage();
+        }
+    }
+    
+    function getNextIndex(direction) {
+        let nextIndex = currentPhotoIndex + direction;
+        if (nextIndex < 0) nextIndex = mosaicPhotos.length - 1;
+        if (nextIndex >= mosaicPhotos.length) nextIndex = 0;
+        return nextIndex;
+    }
+    
+    function updateImage() {
+        const img = lightbox.querySelector('.lightbox-image');
+        const photo = mosaicPhotos[currentPhotoIndex];
+        img.src = photo.dataset.src;
+        updateCounter();
+    }
+    
+    function updateCounter() {
+        const counter = lightbox.querySelector('.current-photo');
+        counter.textContent = currentPhotoIndex + 1;
+    }
+    
+    function slideToImage(nextIndex, direction) {
+        const currentImg = lightbox.querySelector('.lightbox-image');
+        const nextImg = document.createElement('img');
+        
+        // Setup next image
+        nextImg.className = 'lightbox-image';
+        nextImg.src = mosaicPhotos[nextIndex].dataset.src;
+        nextImg.style.transform = `translate(-50%, -50%) translateX(${direction > 0 ? '100%' : '-100%'})`;
+        nextImg.style.transition = 'transform 0.3s ease-out';
+        
+        lightbox.querySelector('.lightbox-content').appendChild(nextImg);
+        
+        // Animate both images
+        requestAnimationFrame(() => {
+            currentImg.style.transition = 'transform 0.3s ease-out';
+            currentImg.style.transform = `translate(-50%, -50%) translateX(${direction > 0 ? '-100%' : '100%'})`;
+            nextImg.style.transform = 'translate(-50%, -50%) translateX(0)';
+        });
+        
+        // Cleanup after animation
+        setTimeout(() => {
+            currentImg.remove();
+            nextImg.style.transform = 'translate(-50%, -50%)';
+            nextImg.style.transition = 'transform 0.2s ease-out';
+            currentPhotoIndex = nextIndex;
+            updateCounter();
+        }, 300);
+    }
+    
+    // Touch handling
+    function setupTouchEvents() {
+        const content = lightbox.querySelector('.lightbox-content');
+        let startX, startY, currentX;
+        let isSwiping = false;
+        
+        content.addEventListener('touchstart', e => {
+            if (isAnimating) return;
+            startX = e.touches[0].clientX;
+            startY = e.touches[0].clientY;
+            isSwiping = true;
+            lightbox.querySelector('.lightbox-image').style.transition = 'none';
+        }, { passive: true });
+        
+        content.addEventListener('touchmove', e => {
+            if (!isSwiping || isAnimating) return;
+            
+            currentX = e.touches[0].clientX;
+            const deltaX = currentX - startX;
+            const deltaY = e.touches[0].clientY - startY;
+            
+            if (Math.abs(deltaX) > Math.abs(deltaY)) {
+                e.preventDefault();
+                const img = lightbox.querySelector('.lightbox-image');
+                img.style.transform = `translate(-50%, -50%) translateX(${deltaX * 0.5}px)`;
+            }
+        }, { passive: false });
+        
+        content.addEventListener('touchend', e => {
+            if (!isSwiping || isAnimating) return;
+            
+            const endX = e.changedTouches[0].clientX;
+            const deltaX = endX - startX;
+            const threshold = window.innerWidth * 0.3;
+            
+            isSwiping = false;
+            
+            if (Math.abs(deltaX) > threshold) {
+                navigate(deltaX > 0 ? -1 : 1, true);
+            } else {
+                // Bounce back
+                const img = lightbox.querySelector('.lightbox-image');
+                img.style.transition = 'transform 0.2s ease-out';
+                img.style.transform = 'translate(-50%, -50%) translateX(0)';
+            }
+        }, { passive: true });
+    }
+    
     // Create lightbox
     function createLightbox() {
         if (lightbox) return;
@@ -342,249 +455,85 @@ function initPhotoMosaic() {
             </div>
         `;
         
-        // Add lightbox styles
-        const lightboxStyle = document.createElement('style');
-        lightboxStyle.textContent = `
-            .photo-lightbox {
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                z-index: 1000;
-                display: none;
-            }
-            
-            .lightbox-backdrop {
-                position: absolute;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background: rgba(0, 0, 0, 0.9);
-                cursor: pointer;
-            }
-            
-            .lightbox-content {
-                position: relative;
-                width: 100%;
-                height: 100%;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                overflow: hidden;
-            }
-            
-            .lightbox-image {
-                max-width: 90%;
-                max-height: 90%;
-                object-fit: contain;
-                border-radius: var(--border-radius);
-                transition: transform 0.2s ease-out;
-                user-select: none;
-                -webkit-user-select: none;
-                -webkit-touch-callout: none;
-                position: absolute;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
-            }
-            
-            .lightbox-close {
-                position: absolute;
-                top: 20px;
-                right: 30px;
-                background: none;
-                border: none;
-                color: white;
-                font-size: 40px;
-                cursor: pointer;
-                z-index: 1001;
-            }
-            
-            .lightbox-nav {
-                position: absolute;
-                top: 50%;
-                transform: translateY(-50%);
-                background: rgba(255, 255, 255, 0.1);
-                border: none;
-                color: white;
-                font-size: 30px;
-                padding: 10px 15px;
-                cursor: pointer;
-                border-radius: 4px;
-                transition: var(--transition);
-            }
-            
-            .lightbox-nav:hover {
-                background: rgba(255, 255, 255, 0.2);
-            }
-            
-            .lightbox-prev {
-                left: 30px;
-            }
-            
-            .lightbox-next {
-                right: 30px;
-            }
-            
-            .lightbox-counter {
-                position: absolute;
-                bottom: 30px;
-                left: 50%;
-                transform: translateX(-50%);
-                color: white;
-                background: rgba(0, 0, 0, 0.5);
-                padding: 10px 20px;
-                border-radius: 20px;
-                font-size: 14px;
-            }
-            
-            @media (max-width: 768px) {
-                .lightbox-nav {
-                    font-size: 24px;
-                    padding: 8px 12px;
+        // Add styles
+        if (!document.querySelector('#lightbox-styles')) {
+            const style = document.createElement('style');
+            style.id = 'lightbox-styles';
+            style.textContent = `
+                .photo-lightbox {
+                    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+                    z-index: 1000; display: none;
                 }
-                
-                .lightbox-prev {
-                    left: 15px;
+                .lightbox-backdrop {
+                    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+                    background: rgba(0, 0, 0, 0.9); cursor: pointer;
                 }
-                
-                .lightbox-next {
-                    right: 15px;
+                .lightbox-content {
+                    position: relative; width: 100%; height: 100%;
+                    display: flex; align-items: center; justify-content: center; overflow: hidden;
                 }
-                
+                .lightbox-image {
+                    max-width: 90%; max-height: 90%; object-fit: contain;
+                    border-radius: var(--border-radius); user-select: none;
+                    position: absolute; top: 50%; left: 50%;
+                    transform: translate(-50%, -50%); transition: transform 0.2s ease-out;
+                }
                 .lightbox-close {
-                    top: 15px;
-                    right: 15px;
-                    font-size: 32px;
+                    position: absolute; top: 20px; right: 30px; background: none;
+                    border: none; color: white; font-size: 40px; cursor: pointer; z-index: 1001;
                 }
-            }
-        `;
-        
-        document.head.appendChild(lightboxStyle);
-        document.body.appendChild(lightbox);
-        
-        // Add event listeners
-        lightbox.querySelector('.lightbox-backdrop').addEventListener('click', closeLightbox);
-        lightbox.querySelector('.lightbox-close').addEventListener('click', closeLightbox);
-        lightbox.querySelector('.lightbox-prev').addEventListener('click', () => navigatePhotoButton(-1));
-        lightbox.querySelector('.lightbox-next').addEventListener('click', () => navigatePhotoButton(1));
-        
-        // Touch/swipe navigation
-        let touchStartX = 0;
-        let touchStartY = 0;
-        let touchEndX = 0;
-        let touchEndY = 0;
-        let touchCurrentX = 0;
-        let isSwipping = false;
-        const minSwipeDistance = 50; // Minimum distance for a valid swipe
-        const swipeThreshold = 0.3; // Percentage of screen width to trigger swipe
-        
-        // Add touch events to the lightbox content instead of just the image
-        const lightboxContent = lightbox.querySelector('.lightbox-content');
-        
-        lightboxContent.addEventListener('touchstart', function(e) {
-            if (isAnimating) return;
-            
-            touchStartX = e.changedTouches[0].screenX;
-            touchStartY = e.changedTouches[0].screenY;
-            isSwipping = true;
-            
-            const currentImg = lightbox.querySelector('.lightbox-image');
-            currentImg.style.transition = 'none';
-        }, { passive: true });
-        
-        lightboxContent.addEventListener('touchmove', function(e) {
-            if (!isSwipping || isAnimating) return;
-            
-            touchCurrentX = e.changedTouches[0].screenX;
-            const deltaX = touchCurrentX - touchStartX;
-            const deltaY = e.changedTouches[0].screenY - touchStartY;
-            
-            // Only apply transform if it's primarily a horizontal swipe
-            if (Math.abs(deltaX) > Math.abs(deltaY)) {
-                e.preventDefault(); // Prevent scrolling during horizontal swipe
-                
-                const currentImg = lightbox.querySelector('.lightbox-image');
-                const transform = `translate(-50%, -50%) translateX(${deltaX * 0.5}px)`;
-                currentImg.style.transform = transform;
-            }
-        }, { passive: false });
-        
-        lightboxContent.addEventListener('touchend', function(e) {
-            if (!isSwipping || isAnimating) return;
-            
-            touchEndX = e.changedTouches[0].screenX;
-            touchEndY = e.changedTouches[0].screenY;
-            isSwipping = false;
-            
-            handleSwipe();
-        }, { passive: true });
-        
-        function handleSwipe() {
-            const deltaX = touchEndX - touchStartX;
-            const deltaY = touchEndY - touchStartY;
-            const absDeltaX = Math.abs(deltaX);
-            const absDeltaY = Math.abs(deltaY);
-            const screenWidth = window.innerWidth;
-            
-            // Only process horizontal swipes (ignore vertical scrolling)
-            if (absDeltaX > absDeltaY && absDeltaX > minSwipeDistance) {
-                // Check if swipe distance is significant enough
-                if (absDeltaX > screenWidth * swipeThreshold) {
-                    isAnimating = true;
-                    if (deltaX > 0) {
-                        // Swipe right - go to previous image
-                        navigatePhoto(-1);
-                    } else {
-                        // Swipe left - go to next image
-                        navigatePhoto(1);
-                    }
-                    // Reset animation flag after transition
-                    setTimeout(() => { isAnimating = false; }, 300);
-                } else {
-                    // Swipe wasn't far enough, bounce back
-                    const currentImg = lightbox.querySelector('.lightbox-image');
-                    currentImg.style.transition = 'transform 0.2s ease-out';
-                    currentImg.style.transform = 'translate(-50%, -50%) translateX(0)';
+                .lightbox-nav {
+                    position: absolute; top: 50%; transform: translateY(-50%);
+                    background: rgba(255, 255, 255, 0.1); border: none; color: white;
+                    font-size: 30px; padding: 10px 15px; cursor: pointer;
+                    border-radius: 4px; transition: background 0.2s;
                 }
-            } else {
-                // Not a horizontal swipe, reset position
-                const currentImg = lightbox.querySelector('.lightbox-image');
-                currentImg.style.transition = 'transform 0.2s ease-out';
-                currentImg.style.transform = 'translate(-50%, -50%) translateX(0)';
-            }
+                .lightbox-nav:hover { background: rgba(255, 255, 255, 0.2); }
+                .lightbox-prev { left: 30px; }
+                .lightbox-next { right: 30px; }
+                .lightbox-counter {
+                    position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
+                    color: white; background: rgba(0, 0, 0, 0.5);
+                    padding: 10px 20px; border-radius: 20px; font-size: 14px;
+                }
+                @media (max-width: 768px) {
+                    .lightbox-nav { font-size: 24px; padding: 8px 12px; }
+                    .lightbox-prev { left: 15px; }
+                    .lightbox-next { right: 15px; }
+                    .lightbox-close { top: 15px; right: 15px; font-size: 32px; }
+                }
+            `;
+            document.head.appendChild(style);
         }
         
-        // Keyboard navigation
-        document.addEventListener('keydown', function(e) {
+        document.body.appendChild(lightbox);
+        
+        // Event listeners
+        lightbox.querySelector('.lightbox-backdrop').onclick = closeLightbox;
+        lightbox.querySelector('.lightbox-close').onclick = closeLightbox;
+        lightbox.querySelector('.lightbox-prev').onclick = () => navigate(-1);
+        lightbox.querySelector('.lightbox-next').onclick = () => navigate(1);
+        
+        // Keyboard events
+        document.addEventListener('keydown', e => {
             if (lightbox.style.display === 'block') {
-                switch(e.key) {
-                    case 'Escape':
-                        closeLightbox();
-                        break;
-                    case 'ArrowLeft':
-                        navigatePhotoButton(-1);
-                        break;
-                    case 'ArrowRight':
-                        navigatePhotoButton(1);
-                        break;
-                }
+                if (e.key === 'Escape') closeLightbox();
+                if (e.key === 'ArrowLeft') navigate(-1);
+                if (e.key === 'ArrowRight') navigate(1);
             }
         });
+        
+        setupTouchEvents();
     }
     
-    // Open lightbox
     function openLightbox(index) {
         createLightbox();
         currentPhotoIndex = index;
-        updateLightboxImage();
+        updateImage();
         lightbox.style.display = 'block';
         document.body.style.overflow = 'hidden';
     }
     
-    // Close lightbox
     function closeLightbox() {
         if (lightbox) {
             lightbox.style.display = 'none';
@@ -592,87 +541,7 @@ function initPhotoMosaic() {
         }
     }
     
-    // Navigate photos (for swipe)
-    function navigatePhoto(direction) {
-        const nextIndex = getNextIndex(direction);
-        slideToImage(nextIndex, direction);
-    }
-    
-    // Navigate photos (for buttons and keyboard)
-    function navigatePhotoButton(direction) {
-        if (isAnimating) return; // Prevent multiple clicks during animation
-        
-        const nextIndex = getNextIndex(direction);
-        isAnimating = true;
-        slideToImage(nextIndex, direction);
-        
-        // Reset animation flag after transition
-        setTimeout(() => { isAnimating = false; }, 300);
-    }
-    
-    // Get next image index
-    function getNextIndex(direction) {
-        let nextIndex = currentPhotoIndex + direction;
-        if (nextIndex < 0) {
-            nextIndex = mosaicPhotos.length - 1;
-        } else if (nextIndex >= mosaicPhotos.length) {
-            nextIndex = 0;
-        }
-        return nextIndex;
-    }
-    
-    // Slide to new image with transition
-    function slideToImage(nextIndex, direction) {
-        const currentImg = lightbox.querySelector('.lightbox-image');
-        const nextPhoto = mosaicPhotos[nextIndex];
-        
-        // Create a new image element for the incoming image
-        const nextImg = document.createElement('img');
-        nextImg.className = 'lightbox-image lightbox-image-next';
-        nextImg.src = nextPhoto.dataset.src;
-        nextImg.style.transform = `translate(-50%, -50%) translateX(${direction > 0 ? '100%' : '-100%'})`;
-        nextImg.style.transition = 'transform 0.3s ease-out';
-        
-        const lightboxContent = lightbox.querySelector('.lightbox-content');
-        lightboxContent.appendChild(nextImg);
-        
-        // Force reflow
-        nextImg.offsetHeight;
-        
-        // Start the slide animation
-        currentImg.style.transition = 'transform 0.3s ease-out';
-        currentImg.style.transform = `translate(-50%, -50%) translateX(${direction > 0 ? '-100%' : '100%'})`;
-        nextImg.style.transform = 'translate(-50%, -50%) translateX(0)';
-        
-        // After animation completes, clean up
-        setTimeout(() => {
-            currentImg.remove();
-            nextImg.className = 'lightbox-image';
-            nextImg.style.transform = 'translate(-50%, -50%)';
-            nextImg.style.transition = 'transform 0.2s ease-out';
-            
-            currentPhotoIndex = nextIndex;
-            updateCounter();
-        }, 300);
-    }
-    
-    // Update lightbox image (for initial load)
-    function updateLightboxImage() {
-        const photo = mosaicPhotos[currentPhotoIndex];
-        const img = lightbox.querySelector('.lightbox-image');
-        const counter = lightbox.querySelector('.current-photo');
-        
-        img.src = photo.dataset.src;
-        counter.textContent = currentPhotoIndex + 1;
-    }
-    
-    // Update counter only
-    function updateCounter() {
-        const counter = lightbox.querySelector('.current-photo');
-        counter.textContent = currentPhotoIndex + 1;
-    }
-    
-    // Add click handlers to mosaic photos
+    // Initialize photo clicks
     mosaicPhotos.forEach((photo, index) => {
         photo.addEventListener('click', () => openLightbox(index));
         photo.style.cursor = 'pointer';
