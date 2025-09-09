@@ -362,6 +362,7 @@ function initPhotoMosaic() {
     function slideToImage(nextIndex, direction) {
         const currentImg = lightbox.querySelector('.lightbox-image');
         const nextImg = document.createElement('img');
+        const content = lightbox.querySelector('.lightbox-content');
         
         // Setup next image
         nextImg.className = 'lightbox-image';
@@ -369,7 +370,8 @@ function initPhotoMosaic() {
         nextImg.style.transform = `translate(-50%, -50%) translateX(${direction > 0 ? '100%' : '-100%'})`;
         nextImg.style.transition = 'transform 0.3s ease-out';
         
-        lightbox.querySelector('.lightbox-content').appendChild(nextImg);
+        // Insert the new image right after the current image (before buttons)
+        currentImg.insertAdjacentElement('afterend', nextImg);
         
         // Animate both images
         requestAnimationFrame(() => {
@@ -380,7 +382,11 @@ function initPhotoMosaic() {
         
         // Cleanup after animation
         setTimeout(() => {
-            currentImg.remove();
+            // Remove the old image
+            if (currentImg.parentNode) {
+                currentImg.remove();
+            }
+            // Reset the new image styles
             nextImg.style.transform = 'translate(-50%, -50%)';
             nextImg.style.transition = 'transform 0.2s ease-out';
             currentPhotoIndex = nextIndex;
@@ -486,7 +492,7 @@ function initPhotoMosaic() {
                     position: absolute; top: 50%; transform: translateY(-50%);
                     background: rgba(255, 255, 255, 0.1); border: none; color: white;
                     font-size: 30px; padding: 10px 15px; cursor: pointer;
-                    border-radius: 4px; transition: background 0.2s;
+                    border-radius: 4px; transition: background 0.2s; z-index: 1002;
                 }
                 .lightbox-nav:hover { background: rgba(255, 255, 255, 0.2); }
                 .lightbox-prev { left: 30px; }
