@@ -7,3 +7,6 @@ supabase/.branches
 supabase/.temp
 .env
 .env.local
+
+# Private documentation
+DEPLOYMENT.md
