@@ -1,3 +1,9 @@
 .DS_STORE
 .github
 .vscode
+
+# Supabase local development
+supabase/.branches
+supabase/.temp
+.env
+.env.local

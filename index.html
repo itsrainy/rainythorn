@@ -17,7 +17,7 @@
     <link rel="icon" type="image/png" sizes="512x512" href="android-chrome-512x512.png">
     <link rel="manifest" href="site.webmanifest">
     
-    <link rel="stylesheet" href="styles.css?v=20250905">
+    <link rel="stylesheet" href="styles.css?v=20251206">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Lato:wght@300;400;500&display=swap" rel="stylesheet">
 </head>
 <body>
@@ -76,6 +76,7 @@
                 <h1 class="nav-logo">R & T</h1>
                 <ul class="nav-menu">
                     <li><a href="#details">Wedding Details</a></li>
+                    <li><a href="rsvp.html">RSVP</a></li>
                     <li><a href="#story">Our Story</a></li>
                     <li><a href="#photos">Photos</a></li>
                     <li><a href="#contribute">Help Us Celebrate</a></li>
@@ -100,20 +101,32 @@
                         <div class="detail-card">
                             <h3>Welcome Party</h3>
                             <p>Date: May 22nd, 2026</p>
-                            <p>Time: 6:00 PM - 9:00 PM</p>
-                            <p>Location: Local brewery in Pittsburgh</p>
+                            <p class="public-info">Location: Trace Brewing, Pittsburgh</p>
+                            <div class="private-details hidden">
+                                <p>Time: 6:00 PM - 9:00 PM</p>
+                                <p>Address: 4312 Main St, Pittsburgh, PA 15224</p>
+                                <p class="detail-note">Join us for drinks and good company the night before!</p>
+                            </div>
                         </div>
-                        
+
                         <div class="detail-card">
                             <h3>Wedding Day</h3>
                             <p>Date: May 23rd, 2026</p>
-                            <p>Time: Details coming soon</p>
-                            <p>Location: Pittsburgh, Pennsylvania</p>
+                            <p class="public-info">Location: Riverview Park, Pittsburgh</p>
+                            <div class="private-details hidden">
+                                <p>Ceremony: 4:00 PM</p>
+                                <p>Address: Riverview Park, Pittsburgh, PA 15214</p>
+                                <p class="detail-note">Reception to follow at the same location.</p>
+                            </div>
                         </div>
                     </div>
-                    
-                    <div class="rsvp-reminder">
-                        <p>Formal invitations with RSVP information will be sent soon, but for now here are some cute pictures of us :)</p>
+
+                    <div class="rsvp-prompt public-only">
+                        <p><a href="rsvp.html">Complete your RSVP</a> to see full event details including times and addresses.</p>
+                    </div>
+
+                    <div class="rsvp-reminder private-details hidden">
+                        <p>We can't wait to celebrate with you!</p>
                     </div>
                 </div>
             </section>
@@ -409,6 +422,6 @@
         </footer>
     </div>
 
-    <script src="script.js?v=20250905"></script>
+    <script src="script.js?v=20251206"></script>
 </body>
 </html>

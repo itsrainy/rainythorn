@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>RSVP - Rainy & Thorn Wedding</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="android-chrome-192x192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="android-chrome-512x512.png">
+    <link rel="manifest" href="site.webmanifest">
+
+    <link rel="stylesheet" href="styles.css?v=20251206">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Lato:wght@300;400;500&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="rsvp-page">
+    <nav class="navbar">
+        <div class="nav-container">
+            <h1 class="nav-logo"><a href="index.html">R & T</a></h1>
+            <ul class="nav-menu">
+                <li><a href="index.html#details">Wedding Details</a></li>
+                <li><a href="rsvp.html" class="active">RSVP</a></li>
+                <li><a href="index.html#story">Our Story</a></li>
+                <li><a href="index.html#photos">Photos</a></li>
+                <li><a href="index.html#contribute">Help Us Celebrate</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="rsvp-page-main">
+        <section class="rsvp-section">
+            <div class="container">
+                <h1>RSVP</h1>
+                <p class="rsvp-page-subtitle">Rainy & Thorn's Wedding - May 23rd, 2026</p>
+
+                <!-- Step 1: Name Search -->
+                <div id="rsvp-search" class="rsvp-step active">
+                    <form id="rsvp-search-form" class="rsvp-form">
+                        <div class="form-group">
+                            <label for="rsvp-name">Your Name</label>
+                            <input type="text" id="rsvp-name" required autocomplete="name" placeholder="First and last name">
+                        </div>
+                        <button type="submit" class="submit-btn">
+                            <span class="btn-text">Find My Invitation</span>
+                            <span class="btn-arrow">&rarr;</span>
+                        </button>
+                    </form>
+                    <div id="rsvp-search-error" class="rsvp-error hidden">
+                        <p>We couldn't find an invitation under that name. Please check your spelling and try again, or <a href="index.html#contact">contact us</a> if you need help.</p>
+                    </div>
+                </div>
+
+                <!-- Step 2: RSVP Form -->
+                <div id="rsvp-form-container" class="rsvp-step hidden">
+                    <div class="rsvp-household-header">
+                        <h3 id="rsvp-household-name"></h3>
+                        <p class="rsvp-edit-note">You can update your response anytime before April 23, 2026.</p>
+                    </div>
+
+                    <form id="rsvp-main-form" class="rsvp-form">
+                        <!-- Guest List (dynamically populated) -->
+                        <div id="rsvp-guests-list" class="rsvp-guests">
+                            <!-- Guest cards will be inserted here by JavaScript -->
+                        </div>
+
+                        <!-- Plus One Section (shown if allowed) -->
+                        <div id="rsvp-plus-one" class="rsvp-plus-one hidden">
+                            <h4>Additional Guest</h4>
+                            <label class="plus-one-toggle">
+                                <input type="checkbox" id="bringing-plus-one">
+                                <span>I'm bringing a guest</span>
+                            </label>
+                            <div id="plus-one-fields" class="plus-one-fields hidden">
+                                <div class="form-group">
+                                    <label for="plus-one-name">Guest's Full Name</label>
+                                    <input type="text" id="plus-one-name" placeholder="Enter your guest's name">
+                                </div>
+                                <div class="form-group">
+                                    <label for="plus-one-dietary">Their Dietary Restrictions</label>
+                                    <input type="text" id="plus-one-dietary" placeholder="Vegetarian, allergies, etc.">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Events Section -->
+                        <div class="rsvp-events">
+                            <h4>Which events will you attend?</h4>
+                            <div class="event-card">
+                                <label class="event-checkbox">
+                                    <input type="checkbox" id="event-welcome" name="welcome_party">
+                                    <span class="checkmark"></span>
+                                    <div class="event-info">
+                                        <strong>Welcome Party</strong>
+                                        <span>May 22nd @ Trace Brewing</span>
+                                    </div>
+                                </label>
+                            </div>
+                            <div class="event-card">
+                                <label class="event-checkbox">
+                                    <input type="checkbox" id="event-wedding" name="wedding">
+                                    <span class="checkmark"></span>
+                                    <div class="event-info">
+                                        <strong>Wedding Ceremony &amp; Reception</strong>
+                                        <span>May 23rd @ Riverview Park</span>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Help Section -->
+                        <div class="rsvp-help">
+                            <label class="help-checkbox">
+                                <input type="checkbox" id="setup-teardown" name="setup_teardown">
+                                <span class="checkmark"></span>
+                                <span>I'm interested in helping with setup or teardown!</span>
+                            </label>
+                        </div>
+
+                        <!-- Email -->
+                        <div class="form-group">
+                            <label for="rsvp-email">Email for Confirmation</label>
+                            <input type="email" id="rsvp-email" required placeholder="your@email.com" autocomplete="email">
+                            <small>We'll send you a confirmation with a link to edit your response.</small>
+                        </div>
+
+                        <button type="submit" class="submit-btn">
+                            <span class="btn-text">Submit RSVP</span>
+                            <span class="btn-arrow">&rarr;</span>
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Step 3: Success -->
+                <div id="rsvp-success" class="rsvp-step hidden">
+                    <div class="success-message">
+                        <h3>Thank You!</h3>
+                        <p>Your RSVP has been received. We've sent a confirmation email with a link to make changes if needed.</p>
+                        <p>We can't wait to celebrate with you!</p>
+                        <a href="index.html#details" class="success-link">View Full Event Details</a>
+                    </div>
+                </div>
+
+                <!-- Deadline Passed -->
+                <div id="rsvp-deadline" class="rsvp-step hidden">
+                    <div class="deadline-message">
+                        <h3>RSVP Deadline Has Passed</h3>
+                        <p>The deadline to RSVP online was April 23, 2026.</p>
+                        <p>Please <a href="index.html#contact">contact us directly</a> to make any changes.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>This is where we'd put a copyright notice but that just feels silly.</p>
+        </div>
+    </footer>
+
+    <script src="rsvp.js?v=20251206"></script>
+</body>
+</html>

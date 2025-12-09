@@ -5,20 +5,23 @@ document.addEventListener('DOMContentLoaded', function() {
     const mainWebsite = document.getElementById('main-website');
     const emailForm = document.getElementById('email-form');
     const skipBtn = document.getElementById('skip-btn');
-    
-    // Check if user has already submitted the form
-    checkReturningVisitor();
-    
-    // Skip button handler
-    skipBtn.addEventListener('click', function(e) {
-        e.preventDefault();
-        
-        // Mark as skipped in localStorage (optional, for analytics or future reference)
-        localStorage.setItem('formSkipped', 'true');
-        
-        // Transition to main site without saving guest info
-        transitionToMainSite();
-    });
+
+    // Only run landing page logic if we're on the main index page
+    if (landingPage && mainWebsite && skipBtn) {
+        // Check if user has already submitted the form
+        checkReturningVisitor();
+
+        // Skip button handler
+        skipBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+
+            // Mark as skipped in localStorage (optional, for analytics or future reference)
+            localStorage.setItem('formSkipped', 'true');
+
+            // Transition to main site without saving guest info
+            transitionToMainSite();
+        });
+    }
     
     // Function to check for returning visitors
     function checkReturningVisitor() {
@@ -66,70 +69,56 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Form submission handler
-    emailForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        // Get form data
-        const formData = {
-            fullName: document.getElementById('full-name').value,
-            email: document.getElementById('email').value
-        };
-        
-        // Validate form
-        if (!formData.fullName || !formData.email) {
-            alert('Please fill in all fields.');
-            return;
-        }
-        
-        // Show loading state
-        const submitBtn = e.target.querySelector('.submit-btn');
-        const originalText = submitBtn.innerHTML;
-        submitBtn.innerHTML = '<span class="btn-text">Submitting...</span>';
-        submitBtn.disabled = true;
-        
-        // Here you can integrate with Google Forms
-        // Replace 'YOUR_GOOGLE_FORM_URL' with your actual Google Form URL
-        // You can get this by creating a Google Form and getting the pre-filled link
-        
-        // Google Forms integration - uncomment and configure when ready
-        
-        const googleFormURL = 'https://docs.google.com/forms/u/0/d/e/1FAIpQLSdCya5SWA7UBbFSTsZsvaeKzUsjpvvJN7KPV4Sb03pf2F9o1g/formResponse';
-        const formBody = new FormData();
-        formBody.append('entry.669220233', formData.fullName);
-        formBody.append('entry.1534190314', formData.email);
-        
-        fetch(googleFormURL, {
-            method: 'POST',
-            mode: 'no-cors',
-            body: formBody
-        }).then(() => {
-            console.log('Form submitted to Google Forms');
-            localStorage.setItem('guestInfo', JSON.stringify(formData));
-            transitionToMainSite();
-        }).catch(() => {
-            console.log('Form submission completed');
-            localStorage.setItem('guestInfo', JSON.stringify(formData));
-            transitionToMainSite();
+    // Form submission handler (only if email form exists)
+    if (emailForm) {
+        emailForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            // Get form data
+            const formData = {
+                fullName: document.getElementById('full-name').value,
+                email: document.getElementById('email').value
+            };
+
+            // Validate form
+            if (!formData.fullName || !formData.email) {
+                alert('Please fill in all fields.');
+                return;
+            }
+
+            // Show loading state
+            const submitBtn = e.target.querySelector('.submit-btn');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<span class="btn-text">Submitting...</span>';
+            submitBtn.disabled = true;
+
+            // Google Forms integration
+            const googleFormURL = 'https://docs.google.com/forms/u/0/d/e/1FAIpQLSdCya5SWA7UBbFSTsZsvaeKzUsjpvvJN7KPV4Sb03pf2F9o1g/formResponse';
+            const formBody = new FormData();
+            formBody.append('entry.669220233', formData.fullName);
+            formBody.append('entry.1534190314', formData.email);
+
+            fetch(googleFormURL, {
+                method: 'POST',
+                mode: 'no-cors',
+                body: formBody
+            }).then(() => {
+                console.log('Form submitted to Google Forms');
+                localStorage.setItem('guestInfo', JSON.stringify(formData));
+                transitionToMainSite();
+            }).catch(() => {
+                console.log('Form submission completed');
+                localStorage.setItem('guestInfo', JSON.stringify(formData));
+                transitionToMainSite();
+            });
         });
-        
-        
-        // // For now, we'll simulate form submission and then transition to main site
-        // setTimeout(() => {
-        //     console.log('Form submitted:', formData);
-            
-        //     // Store data (you might want to send this to your backend)
-        //     localStorage.setItem('guestInfo', JSON.stringify(formData));
-            
-        //     // Transition to main website
-        //     transitionToMainSite();
-        // }, 1000);
-    });
-    
+    }
+
     // Function to transition to main website
     function transitionToMainSite() {
+        if (!landingPage || !mainWebsite) return;
         landingPage.classList.add('page-transition');
-        
+
         setTimeout(() => {
             landingPage.classList.remove('active');
             mainWebsite.classList.add('active');
@@ -558,3 +547,18 @@ function initPhotoMosaic() {
 document.addEventListener('DOMContentLoaded', function() {
     setTimeout(initPhotoMosaic, 500);
 });
+
+// Check if user has RSVP'd (for unlocking private details on main site)
+function checkRSVPStatus() {
+    if (localStorage.getItem('rsvpCompleted') === 'true') {
+        document.querySelectorAll('.private-details').forEach(el => {
+            el.classList.remove('hidden');
+        });
+        document.querySelectorAll('.public-only').forEach(el => {
+            el.classList.add('hidden');
+        });
+    }
+}
+
+// Check RSVP status on page load
+document.addEventListener('DOMContentLoaded', checkRSVPStatus);
