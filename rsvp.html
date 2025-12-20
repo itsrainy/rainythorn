@@ -62,7 +62,7 @@
                             <!-- Guest cards will be inserted here by JavaScript -->
                         </div>
 
-                        <!-- Plus One Section (shown if allowed) -->
+                        <!-- Plus One Section (shown if allowed AND attending) -->
                         <div id="rsvp-plus-one" class="rsvp-plus-one hidden">
                             <h4>Additional Guest</h4>
                             <label class="plus-one-toggle">
@@ -81,13 +81,15 @@
                             </div>
                         </div>
 
-                        <!-- Events Section -->
-                        <div class="rsvp-events">
-                            <h4>Which events will you attend?</h4>
-                            <div class="event-card">
-                                <label class="event-checkbox">
-                                    <input type="checkbox" id="event-welcome" name="welcome_party">
-                                    <span class="checkmark"></span>
+                        <!-- Attending-only sections (hidden if everyone declines) -->
+                        <div id="rsvp-attending-details" class="hidden">
+                            <!-- Events Section -->
+                            <div class="rsvp-events">
+                                <h4>Which events will you attend?</h4>
+                                <div class="event-card">
+                                    <label class="event-checkbox">
+                                        <input type="checkbox" id="event-welcome" name="welcome_party">
+                                        <span class="checkmark"></span>
                                     <div class="event-info">
                                         <strong>Welcome Party</strong>
                                         <span>May 22nd @ 6:00 PM · Trace Brewing</span>
@@ -100,22 +102,23 @@
                                     <span class="checkmark"></span>
                                     <div class="event-info">
                                         <strong>Wedding Ceremony &amp; Reception</strong>
-                                        <span>May 23rd @ 4:00 PM · Riverview Park</span>
+                                        <span>May 23rd @ 3:00 PM · Riverview Park</span>
                                     </div>
+                                </label>
+                            </div>
+                            </div>
+
+                            <!-- Help Section -->
+                            <div class="rsvp-help">
+                                <label class="help-checkbox">
+                                    <input type="checkbox" id="setup-teardown" name="setup_teardown">
+                                    <span class="checkmark"></span>
+                                    <span>I'm interested in helping with setup on the 22nd!</span>
                                 </label>
                             </div>
                         </div>
 
-                        <!-- Help Section -->
-                        <div class="rsvp-help">
-                            <label class="help-checkbox">
-                                <input type="checkbox" id="setup-teardown" name="setup_teardown">
-                                <span class="checkmark"></span>
-                                <span>I'm interested in helping with setup on the 22nd!</span>
-                            </label>
-                        </div>
-
-                        <!-- Notes Section -->
+                        <!-- Notes Section (always visible) -->
                         <div class="form-group">
                             <label for="rsvp-notes">Notes or Special Requests</label>
                             <textarea id="rsvp-notes" rows="3" placeholder="Anything else we should know? Questions, accessibility needs, etc."></textarea>

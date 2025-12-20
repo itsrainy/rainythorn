@@ -54,6 +54,36 @@ const RSVPModule = (function() {
         }
     }
 
+    // Update visibility of attending-only sections based on current selections
+    function updateAttendingVisibility() {
+        // Check if anyone is marked as attending
+        let anyoneAttending = false;
+        currentGuests.forEach(guest => {
+            const radio = document.querySelector(`input[name="attending-${guest.id}"]:checked`);
+            const isAttending = radio && radio.value === 'true';
+            
+            // Show/hide individual dietary field
+            const dietaryField = document.querySelector(`.guest-attending-field[data-for-guest="${guest.id}"]`);
+            if (dietaryField) {
+                dietaryField.classList.toggle('hidden', !isAttending);
+            }
+            
+            if (isAttending) anyoneAttending = true;
+        });
+
+        // Show/hide the attending-only sections (events, help checkbox)
+        const attendingDetails = document.getElementById('rsvp-attending-details');
+        if (attendingDetails) {
+            attendingDetails.classList.toggle('hidden', !anyoneAttending);
+        }
+
+        // Also show/hide plus-one section based on attendance (only if allowed)
+        const plusOneSection = document.getElementById('rsvp-plus-one');
+        if (plusOneSection && currentInvite.allows_plus_one) {
+            plusOneSection.classList.toggle('hidden', !anyoneAttending);
+        }
+    }
+
     // Send confirmation email via Supabase Edge Function
     async function sendConfirmationEmail(inviteUpdate) {
         try {
@@ -188,7 +218,7 @@ const RSVPModule = (function() {
                         <span>Not Attending</span>
                     </label>
                 </div>
-                <div class="form-group dietary-group">
+                <div class="form-group dietary-group guest-attending-field ${guest.attending === true ? '' : 'hidden'}" data-for-guest="${guest.id}">
                     <label for="dietary-${guest.id}">Dietary Restrictions</label>
                     <input type="text" id="dietary-${guest.id}"
                         value="${guest.dietary_restrictions || ''}"
@@ -197,14 +227,17 @@ const RSVPModule = (function() {
             </div>
         `).join('');
 
-        // Show/hide plus one section
-        const plusOneSection = document.getElementById('rsvp-plus-one');
+        // Add attendance change listeners to show/hide dietary and attending-only sections
+        updateAttendingVisibility();
+        document.querySelectorAll('input[type="radio"][name^="attending-"]').forEach(radio => {
+            radio.addEventListener('change', updateAttendingVisibility);
+        });
+
+        // Setup plus one section (visibility controlled by updateAttendingVisibility)
         const plusOneCheckbox = document.getElementById('bringing-plus-one');
         const plusOneFields = document.getElementById('plus-one-fields');
 
         if (currentInvite.allows_plus_one) {
-            plusOneSection.classList.remove('hidden');
-
             // Pre-fill plus-one data
             const hasExistingPlusOne = currentInvite.plus_one_name && currentInvite.plus_one_name.trim() !== '';
             plusOneCheckbox.checked = hasExistingPlusOne;
@@ -222,8 +255,6 @@ const RSVPModule = (function() {
                     document.getElementById('plus-one-dietary').value = '';
                 }
             });
-        } else {
-            plusOneSection.classList.add('hidden');
         }
 
         // Pre-fill events
