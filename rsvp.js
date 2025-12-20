@@ -72,7 +72,7 @@ const RSVPModule = (function() {
 
             const emailData = {
                 household_name: currentInvite.household_name,
-                email: inviteUpdate.email,
+                email: currentInvite.email,
                 edit_token: currentInvite.edit_token,
                 guests: guestsWithAttendance,
                 welcome_party: inviteUpdate.welcome_party,
@@ -163,19 +163,10 @@ const RSVPModule = (function() {
         // Set household name
         document.getElementById('rsvp-household-name').textContent = currentInvite.household_name;
 
-        // Pre-fill email if exists
-        const emailField = document.getElementById('rsvp-email');
-        if (currentInvite.email) {
-            emailField.value = currentInvite.email;
-        } else {
-            // Try to get from localStorage (from landing page form)
-            const guestInfo = localStorage.getItem('guestInfo');
-            if (guestInfo) {
-                const guest = JSON.parse(guestInfo);
-                if (guest.email) {
-                    emailField.value = guest.email;
-                }
-            }
+        // Pre-fill notes if exists
+        const notesField = document.getElementById('rsvp-notes');
+        if (currentInvite.notes) {
+            notesField.value = currentInvite.notes;
         }
 
         // Render guest cards
@@ -184,7 +175,6 @@ const RSVPModule = (function() {
             <div class="guest-card" data-guest-id="${guest.id}">
                 <div class="guest-header">
                     <span class="guest-name">${guest.first_name} ${guest.last_name}</span>
-                    ${guest.is_child ? '<span class="guest-badge">Child</span>' : ''}
                 </div>
                 <div class="guest-attendance">
                     <label class="radio-option">
@@ -273,7 +263,7 @@ const RSVPModule = (function() {
 
             // Collect invite data
             const inviteUpdate = {
-                email: document.getElementById('rsvp-email').value.trim(),
+                notes: document.getElementById('rsvp-notes').value.trim(),
                 welcome_party: document.getElementById('event-welcome').checked,
                 wedding: document.getElementById('event-wedding').checked,
                 setup_teardown_interest: document.getElementById('setup-teardown').checked
@@ -290,7 +280,7 @@ const RSVPModule = (function() {
             // Submit RPC function
             const { data, error } = await client.rpc('submit_rsvp', {
                 token: currentInvite.edit_token,
-                rsvp_email: inviteUpdate.email,
+                rsvp_notes: inviteUpdate.notes,
                 rsvp_welcome_party: inviteUpdate.welcome_party,
                 rsvp_wedding: inviteUpdate.wedding,
                 rsvp_setup_interest: inviteUpdate.setup_teardown_interest,

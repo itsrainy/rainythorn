@@ -174,9 +174,8 @@ serve(async (req) => {
 </head>
 <body>
   <div class="header">
-    <h1>You're Invited!</h1>
-    <p class="subtitle">Join us as we celebrate</p>
-    <h2 style="color: #8b7355; margin: 10px 0;">Rainy & Thorn</h2>
+    <p class="subtitle">You're Invited to Celebrate</p>
+    <h1>Rainy & Thorn</h1>
   </div>
 
   <div class="content">
@@ -187,13 +186,13 @@ serve(async (req) => {
     <div class="details-box">
       <div class="event">
         <div class="event-title">Welcome Party</div>
-        <p style="margin: 5px 0;">Thursday, May 22nd, 2026<br>
+        <p style="margin: 5px 0;">Thursday, May 22nd, 2026 at 6:00 PM<br>
         Trace Brewing, Pittsburgh</p>
       </div>
 
       <div class="event">
         <div class="event-title">Wedding Ceremony & Reception</div>
-        <p style="margin: 5px 0;">Friday, May 23rd, 2026<br>
+        <p style="margin: 5px 0;">Friday, May 23rd, 2026 at 4:00 PM<br>
         Riverview Park, Pittsburgh</p>
       </div>
     </div>
