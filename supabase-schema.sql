@@ -1,9 +1,6 @@
 -- Wedding RSVP Database Schema
 -- Run this in Supabase SQL Editor (supabase.com → your project → SQL Editor)
 
--- Enable required extensions
-CREATE EXTENSION IF NOT EXISTS pg_trgm;
-
 -- Invites table (one per household)
 CREATE TABLE invites (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -36,33 +33,6 @@ CREATE TABLE guests (
 -- Indexes for performance
 CREATE INDEX idx_guests_invite_id ON guests(invite_id);
 CREATE INDEX idx_invites_edit_token ON invites(edit_token);
-CREATE INDEX idx_guests_names ON guests USING gin (
-    (lower(first_name) || ' ' || lower(last_name)) gin_trgm_ops
-);
-
--- Function for fuzzy name search (returns only the edit token for security)
-CREATE OR REPLACE FUNCTION search_guests_by_name(search_first TEXT, search_last TEXT)
-RETURNS TABLE(
-    edit_token TEXT,
-    household_name TEXT,
-    match_score DOUBLE PRECISION
-) AS $$
-BEGIN
-    RETURN QUERY
-    SELECT DISTINCT ON (i.id)
-        i.edit_token,
-        i.household_name,
-        (similarity(lower(g.first_name), lower(search_first)) +
-         similarity(lower(g.last_name), lower(search_last))) / 2.0 as match_score
-    FROM guests g
-    JOIN invites i ON g.invite_id = i.id
-    WHERE
-        similarity(lower(g.first_name), lower(search_first)) > 0.3
-        AND similarity(lower(g.last_name), lower(search_last)) > 0.3
-    ORDER BY i.id, match_score DESC
-    LIMIT 1;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Function to load invite by token (secure, read-only)
 CREATE OR REPLACE FUNCTION get_invite_by_token(token TEXT)

@@ -54,17 +54,6 @@ const RSVPModule = (function() {
         }
     }
 
-    // Show/hide search error
-    function showSearchError() {
-        const errorEl = document.getElementById('rsvp-search-error');
-        if (errorEl) errorEl.classList.remove('hidden');
-    }
-
-    function hideSearchError() {
-        const errorEl = document.getElementById('rsvp-search-error');
-        if (errorEl) errorEl.classList.add('hidden');
-    }
-
     // Send confirmation email via Supabase Edge Function
     async function sendConfirmationEmail(inviteUpdate) {
         try {
@@ -116,38 +105,11 @@ const RSVPModule = (function() {
         }
     }
 
-    // Search for guest by name (returns token for secure access)
-    async function searchGuest(firstName, lastName) {
-        const client = initSupabase();
-        if (!client) {
-            console.error('Supabase not initialized');
-            return null;
-        }
-
-        // Try the fuzzy search function (now returns token instead of full data)
-        const { data, error } = await client.rpc('search_guests_by_name', {
-            search_first: firstName,
-            search_last: lastName
-        });
-
-        if (error) {
-            console.error('Search error:', error);
-            return null;
-        }
-
-        if (data && data.length > 0) {
-            // Return the edit token to load the full invite
-            return data[0].edit_token;
-        }
-
-        return null;
-    }
-
-    // Load invite and guests by token (secure)
+    // Load invite and guests by token
     async function loadInviteByToken(token) {
         const client = initSupabase();
 
-        // Get invite data via secure RPC function
+        // Get invite data RPC function
         const { data: inviteData, error: inviteError } = await client.rpc('get_invite_by_token', {
             token: token
         });
@@ -157,7 +119,7 @@ const RSVPModule = (function() {
             return false;
         }
 
-        // Get guests via secure RPC function
+        // Get guests RPC function
         const { data: guestsData, error: guestsError } = await client.rpc('get_guests_by_token', {
             token: token
         });
@@ -280,56 +242,6 @@ const RSVPModule = (function() {
         document.getElementById('setup-teardown').checked = currentInvite.setup_teardown_interest || false;
     }
 
-    // Handle search form submission
-    async function handleSearch(e) {
-        e.preventDefault();
-        hideSearchError();
-
-        const fullName = document.getElementById('rsvp-name').value.trim();
-
-        if (!fullName) {
-            return;
-        }
-
-        // Split name into first and last (handle multiple parts)
-        const nameParts = fullName.split(/\s+/);
-        const firstName = nameParts[0] || '';
-        const lastName = nameParts.slice(1).join(' ') || nameParts[0]; // If single word, use it as both
-
-        if (!firstName) {
-            return;
-        }
-
-        // Show loading state
-        const btn = e.target.querySelector('.submit-btn');
-        const originalHTML = btn.innerHTML;
-        btn.innerHTML = '<span class="btn-text">Searching...</span>';
-        btn.disabled = true;
-
-        try {
-            const token = await searchGuest(firstName, lastName);
-
-            if (token) {
-                // Found a match - load the full invite using the token
-                const loaded = await loadInviteByToken(token);
-                if (loaded) {
-                    renderInviteForm();
-                    showStep('rsvp-form-container');
-                } else {
-                    showSearchError();
-                }
-            } else {
-                showSearchError();
-            }
-        } catch (err) {
-            console.error('Search error:', err);
-            showSearchError();
-        } finally {
-            btn.innerHTML = originalHTML;
-            btn.disabled = false;
-        }
-    }
-
     // Handle RSVP form submission
     async function handleSubmit(e) {
         e.preventDefault();
@@ -375,7 +287,7 @@ const RSVPModule = (function() {
                 plusOneDietary = document.getElementById('plus-one-dietary').value.trim() || null;
             }
 
-            // Submit via secure RPC function
+            // Submit RPC function
             const { data, error } = await client.rpc('submit_rsvp', {
                 token: currentInvite.edit_token,
                 rsvp_email: inviteUpdate.email,
@@ -441,9 +353,15 @@ const RSVPModule = (function() {
                         renderInviteForm();
                         showStep('rsvp-form-container');
                         unlockPrivateDetails();
+                    } else {
+                        // Invalid token
+                        showStep('rsvp-no-token');
                     }
                 });
             }
+        } else {
+            // No token provided - show message
+            showStep('rsvp-no-token');
         }
 
         // Check if already RSVP'd (for private details)
@@ -452,12 +370,7 @@ const RSVPModule = (function() {
         }
 
         // Bind form events
-        const searchForm = document.getElementById('rsvp-search-form');
         const mainForm = document.getElementById('rsvp-main-form');
-
-        if (searchForm) {
-            searchForm.addEventListener('submit', handleSearch);
-        }
 
         if (mainForm) {
             mainForm.addEventListener('submit', handleSubmit);

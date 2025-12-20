@@ -41,20 +41,11 @@
                 <h1>RSVP</h1>
                 <p class="rsvp-page-subtitle">Rainy & Thorn's Wedding - May 23rd, 2026</p>
 
-                <!-- Step 1: Name Search -->
-                <div id="rsvp-search" class="rsvp-step active">
-                    <form id="rsvp-search-form" class="rsvp-form">
-                        <div class="form-group">
-                            <label for="rsvp-name">Your Name</label>
-                            <input type="text" id="rsvp-name" required autocomplete="name" placeholder="First and last name">
-                        </div>
-                        <button type="submit" class="submit-btn">
-                            <span class="btn-text">Find My Invitation</span>
-                            <span class="btn-arrow">&rarr;</span>
-                        </button>
-                    </form>
-                    <div id="rsvp-search-error" class="rsvp-error hidden">
-                        <p>We couldn't find an invitation under that name. Please check your spelling and try again, or <a href="index.html#contact">contact us</a> if you need help.</p>
+                <!-- No Token Message -->
+                <div id="rsvp-no-token" class="rsvp-step active">
+                    <div class="rsvp-form" style="text-align: center;">
+                        <p style="font-size: 1.1rem; margin-bottom: 20px;">Please use the unique RSVP link from your invitation email.</p>
+                        <p style="color: var(--text-muted);">If you haven't received an email or need a new link, please <a href="index.html#contact">contact us</a>.</p>
                     </div>
                 </div>
 
