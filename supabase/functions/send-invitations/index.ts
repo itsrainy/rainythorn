@@ -175,7 +175,7 @@ serve(async (req) => {
 <body>
   <div class="header">
     <p class="subtitle">You're Invited to Celebrate</p>
-    <h1>Rainy & Thorn</h1>
+    <h1>Rainy Sinclair & Thorn Harteau</h1>
   </div>
 
   <div class="content">
@@ -186,14 +186,20 @@ serve(async (req) => {
     <div class="details-box">
       <div class="event">
         <div class="event-title">Welcome Party</div>
-        <p style="margin: 5px 0;">Thursday, May 22nd, 2026 at 6:00 PM<br>
+        <p style="margin: 5px 0;">Thursday, May 22nd, 2026<br>
+        6:00 PM – 9:00 PM<br>
         Trace Brewing, Pittsburgh</p>
+        <p style="margin: 10px 0 0 0; font-size: 14px; color: #6b5b4f;">
+        Join us for a casual evening with a food truck and cash bar!</p>
       </div>
 
       <div class="event">
         <div class="event-title">Wedding Ceremony & Reception</div>
-        <p style="margin: 5px 0;">Friday, May 23rd, 2026 at 4:00 PM<br>
-        Riverview Park, Pittsburgh</p>
+        <p style="margin: 5px 0;">Friday, May 23rd, 2026<br>
+        Riverview Park Activities Building, Pittsburgh</p>
+        <p style="margin: 10px 0 0 0; font-size: 14px; color: #6b5b4f;">
+        Guests arrive: 2:00 PM · Ceremony: 3:00 PM<br>
+        Reception & dinner to follow · Event ends: 8:00 PM</p>
       </div>
     </div>
 
