@@ -297,11 +297,18 @@ const RSVPModule = (function() {
             localStorage.setItem('rsvpCompleted', 'true');
             localStorage.setItem('rsvpToken', currentInvite.edit_token);
 
-            // Unlock private details
-            unlockPrivateDetails();
+            // Check if anyone is attending
+            const anyoneAttending = guestUpdates.some(g => g.attending === true) || 
+                                   (plusOneName && plusOneName.trim() !== '');
 
-            // Show success
-            showStep('rsvp-success');
+            if (anyoneAttending) {
+                // Unlock private details only if attending
+                unlockPrivateDetails();
+                showStep('rsvp-success');
+            } else {
+                // Show regrets message
+                showStep('rsvp-regrets');
+            }
 
             // Send confirmation email via edge function
             inviteUpdate.plus_one_name = plusOneName;
