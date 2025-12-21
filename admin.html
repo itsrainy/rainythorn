@@ -453,6 +453,21 @@
             cursor: not-allowed;
         }
         
+        .btn-edit {
+            background: none;
+            border: 1px solid var(--border-color);
+            padding: 4px 8px;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+        
+        .btn-edit:hover {
+            background: var(--sage-light);
+            color: var(--text-dark);
+        }
+        
         .modal-status {
             margin-top: 15px;
             padding: 10px;
@@ -562,6 +577,7 @@
                         <tr>
                             <th>Name</th>
                             <th>Household</th>
+                            <th style="width: 60px;"></th>
                             <th>Status</th>
                             <th>Dietary</th>
                             <th>Welcome Party</th>
@@ -569,7 +585,7 @@
                         </tr>
                     </thead>
                     <tbody id="guest-table-body">
-                        <tr><td colspan="6" class="loading">Loading...</td></tr>
+                        <tr><td colspan="7" class="loading">Loading...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -617,6 +633,39 @@
                 <button class="btn-send" id="new-household-save-btn" onclick="saveNewHousehold()">Create & Send Invite</button>
             </div>
             <div class="modal-status" id="new-household-status"></div>
+        </div>
+    </div>
+    
+    <!-- Edit Household Modal -->
+    <div class="modal-overlay" id="edit-household-modal" onclick="closeEditHouseholdModalIfOverlay(event)">
+        <div class="modal" style="max-width: 500px;">
+            <h3 id="edit-household-title">Edit Household</h3>
+            <p class="modal-guests" id="edit-household-guests">Guest names</p>
+            
+            <div style="margin-bottom: 15px;">
+                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                    <input type="checkbox" id="edit-allows-plus-one">
+                    <span>Allow +1</span>
+                </label>
+                <p style="font-size: 12px; color: var(--muted-color); margin-top: 5px;">If enabled, household can add a +1 during RSVP</p>
+            </div>
+            
+            <div id="edit-plus-one-section" style="margin-bottom: 15px; display: none;">
+                <label style="display: block; margin-bottom: 5px; font-weight: 500;">Plus One Name (optional)</label>
+                <input type="text" id="edit-plus-one-name" placeholder="Enter +1 name manually" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: var(--border-radius);">
+                <p style="font-size: 12px; color: var(--muted-color); margin-top: 5px;">Leave empty to let guest enter during RSVP</p>
+            </div>
+            
+            <div id="edit-plus-one-dietary-section" style="margin-bottom: 15px; display: none;">
+                <label style="display: block; margin-bottom: 5px; font-weight: 500;">Plus One Dietary Restrictions</label>
+                <input type="text" id="edit-plus-one-dietary" placeholder="Any dietary restrictions" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: var(--border-radius);">
+            </div>
+            
+            <div class="modal-buttons">
+                <button class="btn-cancel" onclick="closeEditHouseholdModal()">Cancel</button>
+                <button class="btn-send" id="edit-household-save-btn" onclick="saveHouseholdEdit()">Save Changes</button>
+            </div>
+            <div class="modal-status" id="edit-household-status"></div>
         </div>
     </div>
     
@@ -844,8 +893,11 @@
             
             invites.forEach(invite => {
                 const guests = invite.guests || [];
+                const guestCount = guests.length + (invite.plus_one_name ? 1 : 0);
+                const rowSpan = guestCount > 1 ? ` rowspan="${guestCount}"` : '';
+                const plusOneIndicator = invite.allows_plus_one ? ' <span title="Allows +1" style="color: var(--accent-color);">+1</span>' : '';
                 
-                guests.forEach(guest => {
+                guests.forEach((guest, idx) => {
                     let statusBadge = '<span class="status-badge pending">Pending</span>';
                     if (invite.submitted_at) {
                         statusBadge = guest.attending 
@@ -853,30 +905,58 @@
                             : '<span class="status-badge no">No</span>';
                     }
                     
-                    rows.push(`
-                        <tr>
-                            <td>${guest.first_name} ${guest.last_name}${guest.is_child ? ' 👶' : ''}</td>
-                            <td>${invite.household_name}</td>
-                            <td>${statusBadge}</td>
-                            <td>${guest.dietary_restrictions || '-'}</td>
-                            <td>${invite.submitted_at ? (invite.welcome_party ? '✓' : '-') : '-'}</td>
-                            <td>${invite.submitted_at ? (invite.wedding ? '✓' : '-') : '-'}</td>
-                        </tr>
-                    `);
+                    // First guest row includes household name and edit button
+                    if (idx === 0) {
+                        rows.push(`
+                            <tr>
+                                <td>${guest.first_name} ${guest.last_name}${guest.is_child ? ' 👶' : ''}</td>
+                                <td${rowSpan}>${invite.household_name}${plusOneIndicator}</td>
+                                <td${rowSpan}><button class="btn-edit" onclick="openEditHouseholdModal('${invite.id}')" title="Edit household">✎</button></td>
+                                <td>${statusBadge}</td>
+                                <td>${guest.dietary_restrictions || '-'}</td>
+                                <td>${invite.submitted_at ? (invite.welcome_party ? '✓' : '-') : '-'}</td>
+                                <td>${invite.submitted_at ? (invite.wedding ? '✓' : '-') : '-'}</td>
+                            </tr>
+                        `);
+                    } else {
+                        rows.push(`
+                            <tr>
+                                <td>${guest.first_name} ${guest.last_name}${guest.is_child ? ' 👶' : ''}</td>
+                                <td>${statusBadge}</td>
+                                <td>${guest.dietary_restrictions || '-'}</td>
+                                <td>${invite.submitted_at ? (invite.welcome_party ? '✓' : '-') : '-'}</td>
+                                <td>${invite.submitted_at ? (invite.wedding ? '✓' : '-') : '-'}</td>
+                            </tr>
+                        `);
+                    }
                 });
                 
                 // Add plus one if exists
                 if (invite.plus_one_name) {
-                    rows.push(`
-                        <tr>
-                            <td>${invite.plus_one_name} <em>(+1)</em></td>
-                            <td>${invite.household_name}</td>
-                            <td><span class="status-badge yes">Yes</span></td>
-                            <td>${invite.plus_one_dietary || '-'}</td>
-                            <td>${invite.welcome_party ? '✓' : '-'}</td>
-                            <td>${invite.wedding ? '✓' : '-'}</td>
-                        </tr>
-                    `);
+                    const isOnlyPlusOne = guests.length === 0;
+                    if (isOnlyPlusOne) {
+                        rows.push(`
+                            <tr>
+                                <td>${invite.plus_one_name} <em>(+1)</em></td>
+                                <td>${invite.household_name}${plusOneIndicator}</td>
+                                <td><button class="btn-edit" onclick="openEditHouseholdModal('${invite.id}')" title="Edit household">✎</button></td>
+                                <td><span class="status-badge yes">Yes</span></td>
+                                <td>${invite.plus_one_dietary || '-'}</td>
+                                <td>${invite.welcome_party ? '✓' : '-'}</td>
+                                <td>${invite.wedding ? '✓' : '-'}</td>
+                            </tr>
+                        `);
+                    } else {
+                        rows.push(`
+                            <tr>
+                                <td>${invite.plus_one_name} <em>(+1)</em></td>
+                                <td><span class="status-badge yes">Yes</span></td>
+                                <td>${invite.plus_one_dietary || '-'}</td>
+                                <td>${invite.welcome_party ? '✓' : '-'}</td>
+                                <td>${invite.wedding ? '✓' : '-'}</td>
+                            </tr>
+                        `);
+                    }
                 }
             });
             
@@ -1108,6 +1188,114 @@
             } catch (e) {
                 console.error('Error:', e);
                 statusEl.innerHTML = `<span style="color: #dc3545;">Error: ${e.message}</span>`;
+                saveBtn.disabled = false;
+            }
+        }
+        
+        // Edit Household functions
+        let editingInviteId = null;
+        
+        function openEditHouseholdModal(inviteId) {
+            const invite = allInvites.find(inv => inv.id === inviteId);
+            if (!invite) return;
+            
+            editingInviteId = inviteId;
+            
+            document.getElementById('edit-household-title').textContent = invite.household_name;
+            const guestNames = invite.guests?.map(g => `${g.first_name} ${g.last_name}`).join(', ') || 'No guests';
+            document.getElementById('edit-household-guests').textContent = guestNames;
+            
+            // Set current values
+            document.getElementById('edit-allows-plus-one').checked = invite.allows_plus_one || false;
+            document.getElementById('edit-plus-one-name').value = invite.plus_one_name || '';
+            document.getElementById('edit-plus-one-dietary').value = invite.plus_one_dietary || '';
+            
+            // Show/hide plus one fields based on checkbox
+            updatePlusOneFields();
+            
+            document.getElementById('edit-household-status').innerHTML = '';
+            document.getElementById('edit-household-modal').style.display = 'flex';
+        }
+        
+        function updatePlusOneFields() {
+            const allowsPlusOne = document.getElementById('edit-allows-plus-one').checked;
+            document.getElementById('edit-plus-one-section').style.display = allowsPlusOne ? 'block' : 'none';
+            
+            // Show dietary field if there's a plus one name or allow is checked
+            const plusOneName = document.getElementById('edit-plus-one-name').value;
+            document.getElementById('edit-plus-one-dietary-section').style.display = 
+                (allowsPlusOne && plusOneName) ? 'block' : 'none';
+        }
+        
+        // Add event listeners for the edit form
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('edit-allows-plus-one')?.addEventListener('change', updatePlusOneFields);
+            document.getElementById('edit-plus-one-name')?.addEventListener('input', updatePlusOneFields);
+        });
+        
+        function closeEditHouseholdModal() {
+            document.getElementById('edit-household-modal').style.display = 'none';
+            editingInviteId = null;
+        }
+        
+        function closeEditHouseholdModalIfOverlay(event) {
+            if (event.target === event.currentTarget) {
+                closeEditHouseholdModal();
+            }
+        }
+        
+        async function saveHouseholdEdit() {
+            if (!editingInviteId) return;
+            
+            const saveBtn = document.getElementById('edit-household-save-btn');
+            const statusEl = document.getElementById('edit-household-status');
+            
+            saveBtn.disabled = true;
+            statusEl.className = 'modal-status loading';
+            statusEl.innerHTML = 'Saving changes...';
+            statusEl.style.display = 'block';
+            
+            try {
+                const allowsPlusOne = document.getElementById('edit-allows-plus-one').checked;
+                const plusOneName = document.getElementById('edit-plus-one-name').value.trim();
+                const plusOneDietary = document.getElementById('edit-plus-one-dietary').value.trim();
+                
+                const updateData = {
+                    allows_plus_one: allowsPlusOne
+                };
+                
+                // Only update plus one fields if allows_plus_one is true
+                if (allowsPlusOne) {
+                    if (plusOneName) {
+                        updateData.plus_one_name = plusOneName;
+                        updateData.plus_one_dietary = plusOneDietary || null;
+                    }
+                } else {
+                    // If disabling plus one, clear the plus one data
+                    updateData.plus_one_name = null;
+                    updateData.plus_one_dietary = null;
+                }
+                
+                const { error } = await supabaseClient
+                    .from('invites')
+                    .update(updateData)
+                    .eq('id', editingInviteId);
+                
+                if (error) throw error;
+                
+                statusEl.className = 'modal-status success';
+                statusEl.innerHTML = '✓ Household updated!';
+                
+                // Reload data and close modal
+                setTimeout(() => {
+                    closeEditHouseholdModal();
+                    loadData();
+                }, 1000);
+                
+            } catch (e) {
+                console.error('Error:', e);
+                statusEl.className = 'modal-status error';
+                statusEl.innerHTML = `Error: ${e.message}`;
                 saveBtn.disabled = false;
             }
         }
