@@ -661,6 +661,23 @@
                 <input type="text" id="edit-plus-one-dietary" placeholder="Any dietary restrictions" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: var(--border-radius);">
             </div>
             
+            <hr style="border: none; border-top: 1px solid var(--border-color); margin: 20px 0;">
+            
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; margin-bottom: 10px; font-weight: 500;">Add Guest to Household</label>
+                <div style="display: flex; gap: 10px;">
+                    <input type="text" id="add-guest-first-name" placeholder="First name" style="flex: 1; padding: 10px; border: 1px solid var(--border-color); border-radius: var(--border-radius);">
+                    <input type="text" id="add-guest-last-name" placeholder="Last name" style="flex: 1; padding: 10px; border: 1px solid var(--border-color); border-radius: var(--border-radius);">
+                </div>
+                <div style="display: flex; align-items: center; gap: 15px; margin-top: 10px;">
+                    <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
+                        <input type="checkbox" id="add-guest-is-child">
+                        <span>Child</span>
+                    </label>
+                    <button type="button" class="btn-send" style="padding: 8px 16px;" onclick="addGuestToHousehold()">Add Guest</button>
+                </div>
+            </div>
+            
             <div class="modal-buttons">
                 <button class="btn-cancel" onclick="closeEditHouseholdModal()">Cancel</button>
                 <button class="btn-send" id="edit-household-save-btn" onclick="saveHouseholdEdit()">Save Changes</button>
@@ -1297,6 +1314,62 @@
                 statusEl.className = 'modal-status error';
                 statusEl.innerHTML = `Error: ${e.message}`;
                 saveBtn.disabled = false;
+            }
+        }
+        
+        async function addGuestToHousehold() {
+            if (!editingInviteId) return;
+            
+            const firstName = document.getElementById('add-guest-first-name').value.trim();
+            const lastName = document.getElementById('add-guest-last-name').value.trim();
+            const isChild = document.getElementById('add-guest-is-child').checked;
+            const statusEl = document.getElementById('edit-household-status');
+            
+            if (!firstName || !lastName) {
+                statusEl.className = 'modal-status error';
+                statusEl.innerHTML = 'Please enter first and last name';
+                statusEl.style.display = 'block';
+                return;
+            }
+            
+            statusEl.className = 'modal-status loading';
+            statusEl.innerHTML = 'Adding guest...';
+            statusEl.style.display = 'block';
+            
+            try {
+                const { error } = await supabaseClient
+                    .from('guests')
+                    .insert({
+                        invite_id: editingInviteId,
+                        first_name: firstName,
+                        last_name: lastName,
+                        is_child: isChild
+                    });
+                
+                if (error) throw error;
+                
+                // Clear form fields
+                document.getElementById('add-guest-first-name').value = '';
+                document.getElementById('add-guest-last-name').value = '';
+                document.getElementById('add-guest-is-child').checked = false;
+                
+                statusEl.className = 'modal-status success';
+                statusEl.innerHTML = `✓ Added ${firstName} ${lastName}${isChild ? ' 👶' : ''}!`;
+                
+                // Reload data to update the guest list display
+                await loadData();
+                
+                // Update the modal's guest list display
+                const invite = allInvites.find(inv => inv.id === editingInviteId);
+                if (invite) {
+                    const guestNames = invite.guests?.map(g => `${g.first_name} ${g.last_name}`).join(', ') || 'No guests';
+                    document.getElementById('edit-household-guests').textContent = guestNames;
+                }
+                
+            } catch (e) {
+                console.error('Error:', e);
+                statusEl.className = 'modal-status error';
+                statusEl.innerHTML = `Error: ${e.message}`;
             }
         }
         
