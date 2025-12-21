@@ -276,6 +276,11 @@
             color: #856404;
         }
         
+        .status-badge.viewed {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        
         .hidden {
             display: none !important;
         }
@@ -916,18 +921,35 @@
             
             let rows = [];
             
+            // Helper to format date/time for tooltips
+            function formatDateTime(dateStr) {
+                if (!dateStr) return '';
+                const d = new Date(dateStr);
+                return d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            }
+            
             invites.forEach(invite => {
                 const guests = invite.guests || [];
                 const guestCount = guests.length + (invite.plus_one_name ? 1 : 0);
                 const rowSpan = guestCount > 1 ? ` rowspan="${guestCount}"` : '';
                 const plusOneIndicator = invite.allows_plus_one ? ' <span title="Allows +1" style="color: var(--accent-color);">+1</span>' : '';
+                const viewedIndicator = invite.viewed_at && !invite.submitted_at ? ' <span title="Viewed: ' + formatDateTime(invite.viewed_at) + '" style="color: #3498db;">👁️</span>' : '';
                 
                 guests.forEach((guest, idx) => {
-                    let statusBadge = '<span class="status-badge pending">Pending</span>';
+                    let statusBadge;
                     if (invite.submitted_at) {
+                        const tooltip = 'RSVP submitted: ' + formatDateTime(invite.submitted_at);
                         statusBadge = guest.attending 
-                            ? '<span class="status-badge yes">Yes</span>'
-                            : '<span class="status-badge no">No</span>';
+                            ? `<span class="status-badge yes" title="${tooltip}">Yes</span>`
+                            : `<span class="status-badge no" title="${tooltip}">No</span>`;
+                    } else if (invite.viewed_at) {
+                        const tooltip = 'Viewed: ' + formatDateTime(invite.viewed_at);
+                        statusBadge = `<span class="status-badge viewed" title="${tooltip}">Viewed</span>`;
+                    } else if (invite.invited_at) {
+                        const tooltip = 'Invitation sent: ' + formatDateTime(invite.invited_at);
+                        statusBadge = `<span class="status-badge pending" title="${tooltip}">Pending</span>`;
+                    } else {
+                        statusBadge = '<span class="status-badge pending" title="Not yet invited">Pending</span>';
                     }
                     
                     // First guest row includes household name and edit button
@@ -935,7 +957,7 @@
                         rows.push(`
                             <tr>
                                 <td>${guest.first_name} ${guest.last_name}${guest.is_child ? ' 👶' : ''}</td>
-                                <td${rowSpan}>${invite.household_name}${plusOneIndicator}</td>
+                                <td${rowSpan}>${invite.household_name}${plusOneIndicator}${viewedIndicator}</td>
                                 <td${rowSpan}><button class="btn-edit" onclick="openEditHouseholdModal('${invite.id}')" title="Edit household">✎</button></td>
                                 <td>${statusBadge}</td>
                                 <td>${guest.dietary_restrictions || '-'}</td>
