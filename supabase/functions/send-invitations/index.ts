@@ -25,6 +25,15 @@ serve(async (req) => {
   }
 
   try {
+    // Verify the caller has the service role key (admin only)
+    const authHeader = req.headers.get("authorization");
+    if (!authHeader || !authHeader.includes(SUPABASE_SERVICE_KEY)) {
+      return new Response(
+        JSON.stringify({ error: "Unauthorized - admin access required" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const { mode, test_email, household_ids }: SendInvitationsRequest = await req.json();
 
     // Initialize Supabase with service key (admin access)

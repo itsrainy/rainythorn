@@ -1,6 +1,9 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
 const FROM_EMAIL = "Rainy & Thorn <noreply@rainythorn.wedding>";
 
@@ -37,9 +40,35 @@ serve(async (req) => {
   try {
     const data: RSVPData = await req.json();
 
-    if (!data.email) {
+    if (!data.edit_token) {
       return new Response(
-        JSON.stringify({ error: "Email is required" }),
+        JSON.stringify({ error: "Token is required" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Validate the token exists and get the actual email from the database
+    // This prevents someone from using the anon key to spam arbitrary emails
+    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
+    const { data: invite, error: inviteError } = await supabase
+      .from("invites")
+      .select("email, household_name")
+      .eq("edit_token", data.edit_token)
+      .single();
+
+    if (inviteError || !invite) {
+      return new Response(
+        JSON.stringify({ error: "Invalid token" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Use the email from the database, not the request (security)
+    const recipientEmail = invite.email;
+
+    if (!recipientEmail || recipientEmail.startsWith('NEEDS_EMAIL')) {
+      return new Response(
+        JSON.stringify({ error: "No valid email for this invite" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -142,7 +171,7 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         from: FROM_EMAIL,
-        to: [data.email],
+        to: [recipientEmail],
         subject: "RSVP Confirmed - Rainy & Thorn's Wedding",
         html: htmlBody,
       }),
