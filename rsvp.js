@@ -58,9 +58,11 @@ const RSVPModule = (function() {
     function updateAttendingVisibility() {
         // Check if anyone is marked as attending
         let anyoneAttending = false;
+        console.log('updateAttendingVisibility called, guests:', currentGuests.length);
         currentGuests.forEach(guest => {
             const radio = document.querySelector(`input[name="attending-${guest.id}"]:checked`);
             const isAttending = radio && radio.value === 'true';
+            console.log(`Guest ${guest.id}: radio=`, radio, 'isAttending=', isAttending);
             
             // Show/hide individual dietary field
             const dietaryField = document.querySelector(`.guest-attending-field[data-for-guest="${guest.id}"]`);
