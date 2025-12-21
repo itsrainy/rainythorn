@@ -1376,6 +1376,15 @@ section h2::after {
     margin-bottom: 10px;
 }
 
+.rsvp-page-location {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 10px;
+}
+
 .rsvp-page-subtitle {
     text-align: center;
     color: var(--text-muted);

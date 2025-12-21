@@ -97,139 +97,115 @@ serve(async (req) => {
 <head>
   <style>
     body { 
-      font-family: Georgia, serif; 
+      font-family: Georgia, 'Times New Roman', serif; 
       color: #5c4a3d; 
-      line-height: 1.6; 
-      max-width: 600px; 
+      line-height: 1.8; 
+      max-width: 500px; 
       margin: 0 auto; 
-      padding: 20px;
+      padding: 40px 20px;
       background: #fefefe;
+      text-align: center;
     }
-    .header { 
-      text-align: center; 
-      padding: 40px 0; 
-      border-bottom: 3px solid #d4c4b0; 
-      margin-bottom: 30px; 
+    .invitation {
+      padding: 20px 0;
     }
-    h1 { 
-      font-family: 'Playfair Display', serif;
-      color: #8b7355; 
-      font-size: 32px; 
-      margin: 0 0 10px 0;
-    }
-    .subtitle {
+    .preheader {
+      font-size: 14px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
       color: #a89080;
-      font-size: 18px;
-      font-style: italic;
+      margin-bottom: 8px;
     }
-    .content { 
-      padding: 20px 0; 
+    .names { 
+      font-size: 28px; 
+      color: #6b5b4f;
+      margin: 0 0 30px 0;
+      font-weight: normal;
     }
-    .details-box {
-      background: #f5e6d3;
-      padding: 25px;
-      border-radius: 8px;
-      margin: 25px 0;
-      border-left: 4px solid #8b7355;
+    .divider {
+      margin: 30px 0;
+      font-size: 16px;
+      letter-spacing: 3px;
+      color: #7a8471;
     }
     .event {
-      margin: 15px 0;
+      margin: 35px 0;
     }
-    .event-title {
-      font-weight: bold;
+    .event-name {
+      font-size: 13px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
       color: #8b7355;
-      font-size: 18px;
+      margin-bottom: 12px;
+    }
+    .event-details {
+      font-size: 16px;
+      color: #5c4a3d;
+      margin: 0;
+      line-height: 1.7;
+    }
+    .event-note {
+      font-size: 14px;
+      font-style: italic;
+      color: #a89080;
+      margin-top: 8px;
     }
     .rsvp-button { 
       display: inline-block; 
       background: #8b7355; 
       color: white !important; 
-      padding: 16px 40px; 
+      padding: 14px 50px; 
       text-decoration: none; 
-      border-radius: 6px; 
-      margin: 30px 0;
-      font-size: 18px;
-      font-weight: 500;
+      font-size: 13px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin: 35px 0;
     }
-    .rsvp-button:hover {
-      background: #6f5a44;
+    .footer {
+      margin-top: 40px;
+      padding-top: 30px;
+      border-top: 1px solid #e8e0d8;
+      font-size: 13px;
+      color: #a89080;
+      line-height: 2;
     }
-    .footer { 
-      border-top: 3px solid #d4c4b0; 
-      padding-top: 20px; 
-      margin-top: 40px; 
-      font-size: 14px; 
-      color: #888; 
-      text-align: center;
-    }
-    .note {
-      background: #fff9f0;
-      padding: 15px;
-      border-radius: 6px;
-      margin: 20px 0;
-      font-size: 14px;
-      border: 1px solid #f0e6d8;
+    .footer a {
+      color: #8b7355;
+      text-decoration: none;
     }
   </style>
 </head>
 <body>
-  <div class="header">
-    <p class="subtitle">You're Invited to Celebrate</p>
-    <h1>Rainy Sinclair & Thorn Harteau</h1>
-  </div>
-
-  <div class="content">
-    <p>Dear ${invite.household_name},</p>
-
-    <p>We're thrilled to invite you to our wedding celebration in Pittsburgh!</p>
-
-    <div class="details-box">
-      <div class="event">
-        <div class="event-title">Welcome Party</div>
-        <p style="margin: 5px 0;">Thursday, May 22nd, 2026<br>
-        6:00 PM – 9:00 PM<br>
-        Trace Brewing, Pittsburgh</p>
-        <p style="margin: 10px 0 0 0; font-size: 14px; color: #6b5b4f;">
-        Join us for a casual evening with a food truck and cash bar!</p>
-      </div>
-
-      <div class="event">
-        <div class="event-title">Wedding Ceremony & Reception</div>
-        <p style="margin: 5px 0;">Friday, May 23rd, 2026<br>
-        Riverview Park Activities Building, Pittsburgh</p>
-        <p style="margin: 10px 0 0 0; font-size: 14px; color: #6b5b4f;">
-        Guests arrive: 2:00 PM · Ceremony: 3:00 PM<br>
-        Reception & dinner to follow · Event ends: 8:00 PM</p>
-      </div>
+  <div class="invitation">
+    <p class="preheader">You're Invited</p>
+    <h1 class="names">Rainy Sinclair & Thorn Harteau</h1>
+    <p class="divider">─── ◇ ───</p>
+    <div class="event">
+      <p class="event-name">Welcome Party</p>
+      <p class="event-details">
+        Thursday, May 22nd, 2026<br>
+        6:00 – 9:00 PM<br>
+        Trace Brewing, Pittsburgh
+      </p>
+      <p class="event-note">Food truck & cash bar</p>
     </div>
-
-    <p style="text-align: center;">
-      <a href="${rsvpUrl}" class="rsvp-button">RSVP Now</a>
-    </p>
-
-    <div class="note">
-      <strong>📝 Please RSVP by April 23rd, 2026</strong><br>
-      Your unique RSVP link above will take you to a form pre-filled with your party: ${guestNames}
-      <br><br>
-      You can update your response anytime using the same link.
+    
+    <div class="event">
+      <p class="event-name">Wedding Ceremony & Reception</p>
+      <p class="event-details">
+        Friday, May 23rd, 2026<br>
+        Ceremony at 3:00 PM<br>
+        Riverview Park, Pittsburgh
+      </p>
+      <p class="event-note">Dinner & celebration to follow</p>
     </div>
-
-    <p>Visit our website for more details about the venue, accommodations, and ways to celebrate with us:</p>
-    <p style="text-align: center;">
-      <a href="https://rainythorn.wedding" style="color: #8b7355;">rainythorn.wedding</a>
-    </p>
-
-    <p>We can't wait to see you there!</p>
-
-    <p>With love,<br>
-    <strong>Rainy & Thorn</strong></p>
-  </div>
-
-  <div class="footer">
-    <p>May 23rd, 2026 | Pittsburgh, PA</p>
-    <p style="font-size: 12px; margin-top: 10px;">
-      Questions? Reply to this email or visit our website.
-    </p>
+    
+    <a href="${rsvpUrl}" class="rsvp-button">RSVP</a>
+    
+    <div class="footer">
+      <p>Please respond by April 23rd, 2026</p>
+      <p><a href="https://rainythorn.wedding">rainythorn.wedding</a></p>
+    </div>
   </div>
 </body>
 </html>
