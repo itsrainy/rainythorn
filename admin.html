@@ -678,6 +678,14 @@
                 </div>
             </div>
             
+            <hr style="border: none; border-top: 1px solid var(--border-color); margin: 20px 0;">
+            
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; margin-bottom: 5px; font-weight: 500;">Send Invitation</label>
+                <p id="edit-invite-status" style="font-size: 12px; color: var(--muted-color); margin-bottom: 10px;"></p>
+                <button type="button" class="btn-send" style="padding: 8px 16px;" onclick="resendInvitation()">Send Invitation Email</button>
+            </div>
+            
             <div class="modal-buttons">
                 <button class="btn-cancel" onclick="closeEditHouseholdModal()">Cancel</button>
                 <button class="btn-send" id="edit-household-save-btn" onclick="saveHouseholdEdit()">Save Changes</button>
@@ -1227,6 +1235,17 @@
             document.getElementById('edit-plus-one-name').value = invite.plus_one_name || '';
             document.getElementById('edit-plus-one-dietary').value = invite.plus_one_dietary || '';
             
+            // Show invite status
+            const inviteStatusEl = document.getElementById('edit-invite-status');
+            if (!invite.email || invite.email.startsWith('NEEDS_EMAIL')) {
+                inviteStatusEl.innerHTML = '⚠️ No email address on file';
+            } else if (invite.invited_at) {
+                const invitedDate = new Date(invite.invited_at).toLocaleDateString();
+                inviteStatusEl.innerHTML = `✓ Invitation sent on ${invitedDate} to ${invite.email}`;
+            } else {
+                inviteStatusEl.innerHTML = `📧 Email: ${invite.email} (not yet sent)`;
+            }
+            
             // Show/hide plus one fields based on checkbox
             updatePlusOneFields();
             
@@ -1364,6 +1383,56 @@
                 if (invite) {
                     const guestNames = invite.guests?.map(g => `${g.first_name} ${g.last_name}`).join(', ') || 'No guests';
                     document.getElementById('edit-household-guests').textContent = guestNames;
+                }
+                
+            } catch (e) {
+                console.error('Error:', e);
+                statusEl.className = 'modal-status error';
+                statusEl.innerHTML = `Error: ${e.message}`;
+            }
+        }
+        
+        async function resendInvitation() {
+            if (!editingInviteId) return;
+            
+            const invite = allInvites.find(inv => inv.id === editingInviteId);
+            if (!invite) return;
+            
+            const statusEl = document.getElementById('edit-household-status');
+            
+            if (!invite.email || invite.email.startsWith('NEEDS_EMAIL')) {
+                statusEl.className = 'modal-status error';
+                statusEl.innerHTML = 'No email address on file. Add one in the Needs Email section first.';
+                statusEl.style.display = 'block';
+                return;
+            }
+            
+            statusEl.className = 'modal-status loading';
+            statusEl.innerHTML = 'Sending invitation...';
+            statusEl.style.display = 'block';
+            
+            try {
+                const response = await supabaseClient.functions.invoke('send-invitations', {
+                    body: {
+                        household_ids: [editingInviteId]
+                    }
+                });
+                
+                if (response.error) throw response.error;
+                
+                const result = response.data;
+                if (result.sent === 1) {
+                    statusEl.className = 'modal-status success';
+                    statusEl.innerHTML = `✓ Invitation sent to ${invite.email}!`;
+                    
+                    // Update the invite status display
+                    document.getElementById('edit-invite-status').innerHTML = `✓ Invitation just sent to ${invite.email}`;
+                    
+                    // Reload data
+                    await loadData();
+                } else {
+                    statusEl.className = 'modal-status error';
+                    statusEl.innerHTML = `Failed to send. ${result.message || 'Unknown error'}`;
                 }
                 
             } catch (e) {

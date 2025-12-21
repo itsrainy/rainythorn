@@ -26,8 +26,23 @@ serve(async (req) => {
 
   try {
     // Verify the caller has the service role key (admin only)
-    const authHeader = req.headers.get("authorization");
-    if (!authHeader || !authHeader.includes(SUPABASE_SERVICE_KEY)) {
+    // Check the JWT's role claim to ensure it's the service_role key
+    const authHeader = req.headers.get("authorization") || "";
+    const bearerToken = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
+    
+    let isServiceRole = false;
+    if (bearerToken) {
+      try {
+        // JWT is base64url encoded: header.payload.signature
+        const payloadBase64 = bearerToken.split('.')[1];
+        const payload = JSON.parse(atob(payloadBase64));
+        isServiceRole = payload.role === "service_role";
+      } catch (e) {
+        console.log("Failed to parse JWT:", e);
+      }
+    }
+    
+    if (!isServiceRole) {
       return new Response(
         JSON.stringify({ error: "Unauthorized - admin access required" }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
