@@ -176,6 +176,9 @@ const RSVPModule = (function() {
             submitted_at: inviteData[0].submitted_at
         };
 
+        // Save token to localStorage so user can return without the URL parameter
+        localStorage.setItem('rsvpToken', currentInvite.edit_token);
+
         currentGuests = guestsData.map(g => ({
             id: g.guest_id,
             first_name: g.first_name,
@@ -371,20 +374,24 @@ const RSVPModule = (function() {
         const urlParams = new URLSearchParams(window.location.search);
         const editToken = urlParams.get('token');
 
-        if (editToken) {
+        // Try URL token first, then fall back to localStorage
+        const token = editToken || localStorage.getItem('rsvpToken');
+
+        if (token) {
             // Check deadline first
             if (isDeadlinePassed()) {
                 showStep('rsvp-deadline');
                 unlockPrivateDetails(); // Still show details if they have a token
             } else {
                 // Load invite by token
-                loadInviteByToken(editToken).then(loaded => {
+                loadInviteByToken(token).then(loaded => {
                     if (loaded) {
                         renderInviteForm();
                         showStep('rsvp-form-container');
                         unlockPrivateDetails();
                     } else {
-                        // Invalid token
+                        // Invalid token - clear from localStorage if it was stored there
+                        localStorage.removeItem('rsvpToken');
                         showStep('rsvp-no-token');
                     }
                 });
