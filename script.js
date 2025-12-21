@@ -25,6 +25,15 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Function to check for returning visitors
     function checkReturningVisitor() {
+        // If user has an RSVP token, skip the save-the-date form entirely
+        const rsvpToken = localStorage.getItem('rsvpToken');
+        if (rsvpToken) {
+            // They've already received/used their invite - go straight to main site
+            landingPage.classList.remove('active');
+            mainWebsite.classList.add('active');
+            return;
+        }
+
         const guestInfo = localStorage.getItem('guestInfo');
         if (guestInfo) {
             const guest = JSON.parse(guestInfo);
