@@ -10,3 +10,4 @@ supabase/.temp
 
 # Private documentation
 DEPLOYMENT.md
+guest-import.sql

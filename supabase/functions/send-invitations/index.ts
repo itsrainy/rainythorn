@@ -51,10 +51,11 @@ serve(async (req) => {
     // For test mode, only get one invite
     if (mode === "test") {
       query = query.limit(1);
-    } else {
-      // For production, only send to those who haven't been invited yet
+    } else if (!household_ids || household_ids.length === 0) {
+      // For bulk send (no specific IDs), only send to those who haven't been invited yet
       query = query.is("submitted_at", null);
     }
+    // When household_ids are provided, send regardless of submitted_at status
 
     const { data: invites, error } = await query;
 
@@ -73,12 +74,29 @@ serve(async (req) => {
       );
     }
 
+    // Filter out placeholder emails (NEEDS_EMAIL_*)
+    const validInvites = invites.filter(invite => 
+      invite.email && !invite.email.startsWith('NEEDS_EMAIL')
+    );
+
+    if (validInvites.length === 0) {
+      return new Response(
+        JSON.stringify({ 
+          success: true, 
+          message: "No invites with valid emails to send",
+          sent: 0,
+          skipped: invites.length
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const results = [];
     let successCount = 0;
     let errorCount = 0;
 
     // Send email to each household
-    for (const invite of invites) {
+    for (const invite of validInvites) {
       try {
         const guestNames = invite.guests
           .map((g: any) => `${g.first_name} ${g.last_name}`)
