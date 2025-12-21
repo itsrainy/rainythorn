@@ -1325,9 +1325,9 @@
             const isChild = document.getElementById('add-guest-is-child').checked;
             const statusEl = document.getElementById('edit-household-status');
             
-            if (!firstName || !lastName) {
+            if (!firstName) {
                 statusEl.className = 'modal-status error';
-                statusEl.innerHTML = 'Please enter first and last name';
+                statusEl.innerHTML = 'Please enter a first name';
                 statusEl.style.display = 'block';
                 return;
             }
