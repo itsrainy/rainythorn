@@ -201,7 +201,7 @@ serve(async (req) => {
     <div class="event">
       <p class="event-name">Welcome Party</p>
       <p class="event-details">
-        Thursday, May 22nd, 2026<br>
+        Friday, May 22nd, 2026<br>
         6:00 – 9:00 PM<br>
         Trace Brewing, Pittsburgh
       </p>
@@ -211,7 +211,7 @@ serve(async (req) => {
     <div class="event">
       <p class="event-name">Wedding Ceremony & Reception</p>
       <p class="event-details">
-        Friday, May 23rd, 2026<br>
+        Saturday, May 23rd, 2026<br>
         Ceremony at 3:00 PM<br>
         Riverview Park, Pittsburgh
       </p>
