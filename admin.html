@@ -928,7 +928,22 @@
                 return d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
             }
             
-            invites.forEach(invite => {
+            // Sort invites: Responded first, then Viewed, then Pending
+            const sortedInvites = [...invites].sort((a, b) => {
+                // Priority: submitted (0) > viewed (1) > pending (2)
+                const getPriority = (inv) => {
+                    if (inv.submitted_at) return 0;
+                    if (inv.viewed_at) return 1;
+                    return 2;
+                };
+                const priorityDiff = getPriority(a) - getPriority(b);
+                if (priorityDiff !== 0) return priorityDiff;
+                // Within same priority, sort by most recent activity
+                const getDate = (inv) => new Date(inv.submitted_at || inv.viewed_at || inv.invited_at || 0);
+                return getDate(b) - getDate(a);
+            });
+            
+            sortedInvites.forEach(invite => {
                 const guests = invite.guests || [];
                 const guestCount = guests.length + (invite.plus_one_name ? 1 : 0);
                 const rowSpan = guestCount > 1 ? ` rowspan="${guestCount}"` : '';
