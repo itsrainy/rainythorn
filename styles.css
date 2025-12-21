@@ -1636,6 +1636,11 @@ section h2::after {
     font-size: 0.9rem;
 }
 
+.event-info .dress-code {
+    font-style: italic;
+    font-size: 0.85rem;
+}
+
 /* Help Section */
 .rsvp-help {
     margin-bottom: 25px;
@@ -1743,6 +1748,13 @@ section h2::after {
     font-style: italic;
     font-size: 0.95rem;
     margin-top: 10px;
+}
+
+.dress-code {
+    font-style: italic;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    margin-top: 8px;
 }
 
 .rsvp-prompt {
