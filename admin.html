@@ -504,11 +504,15 @@
             </div>
             <div class="stat-card">
                 <div class="number" id="stat-responded">-</div>
-                <div class="label">Responded</div>
+                <div class="label">Households Responded</div>
             </div>
             <div class="stat-card">
                 <div class="number" id="stat-attending">-</div>
-                <div class="label">Attending</div>
+                <div class="label">Guests Attending</div>
+            </div>
+            <div class="stat-card">
+                <div class="number" id="stat-declined">-</div>
+                <div class="label">Declined</div>
             </div>
             <div class="stat-card">
                 <div class="number" id="stat-welcome-party">-</div>
@@ -529,6 +533,7 @@
             <div class="needs-email-header">
                 <h2>📧 Needs Email</h2>
                 <span class="needs-email-count" id="needs-email-count">0</span>
+                <button class="btn-add-new" onclick="openNewHouseholdModal()" style="margin-left: auto; padding: 8px 16px; background: var(--accent-color); color: white; border: none; border-radius: var(--border-radius); cursor: pointer; font-size: 0.9rem;">+ Add New Household</button>
             </div>
             <div class="needs-email-list" id="needs-email-list">
                 <div class="loading">Loading...</div>
@@ -582,6 +587,36 @@
                 <button class="btn-send" id="modal-send-btn" onclick="sendInvitation()">Send Invite</button>
             </div>
             <div class="modal-status" id="modal-status"></div>
+        </div>
+    </div>
+    
+    <!-- Add New Household Modal -->
+    <div class="modal-overlay" id="new-household-modal" onclick="closeNewHouseholdModalIfOverlay(event)">
+        <div class="modal" style="max-width: 500px;">
+            <h3>Add New Household</h3>
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; margin-bottom: 5px; font-weight: 500;">Household Name</label>
+                <input type="text" id="new-household-name" placeholder="e.g., John & Jane Smith" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: var(--border-radius);">
+            </div>
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; margin-bottom: 5px; font-weight: 500;">Email</label>
+                <input type="email" id="new-household-email" placeholder="email@example.com" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: var(--border-radius);">
+            </div>
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; margin-bottom: 5px; font-weight: 500;">Guest Names (one per line)</label>
+                <textarea id="new-household-guests" placeholder="John Smith&#10;Jane Smith" rows="4" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: var(--border-radius); resize: vertical;"></textarea>
+            </div>
+            <div style="margin-bottom: 15px;">
+                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                    <input type="checkbox" id="new-household-plus-one">
+                    <span>Allow +1</span>
+                </label>
+            </div>
+            <div class="modal-buttons">
+                <button class="btn-cancel" onclick="closeNewHouseholdModal()">Cancel</button>
+                <button class="btn-send" id="new-household-save-btn" onclick="saveNewHousehold()">Create & Send Invite</button>
+            </div>
+            <div class="modal-status" id="new-household-status"></div>
         </div>
     </div>
     
@@ -672,6 +707,7 @@
             let totalGuests = 0;
             let respondedHouseholds = 0;
             let attendingGuests = 0;
+            let declinedHouseholds = 0;
             let welcomePartyCount = 0;
             let weddingCount = 0;
             let helpersCount = 0;
@@ -684,12 +720,24 @@
                     respondedHouseholds++;
                     
                     // Count attending guests
+                    let householdAttending = 0;
                     invite.guests?.forEach(g => {
-                        if (g.attending) attendingGuests++;
+                        if (g.attending) {
+                            attendingGuests++;
+                            householdAttending++;
+                        }
                     });
                     
                     // Count plus ones
-                    if (invite.plus_one_name) attendingGuests++;
+                    if (invite.plus_one_name) {
+                        attendingGuests++;
+                        householdAttending++;
+                    }
+                    
+                    // Check if this household declined (no one attending)
+                    if (householdAttending === 0) {
+                        declinedHouseholds++;
+                    }
                     
                     // Event counts (per household attending)
                     const anyoneAttending = invite.guests?.some(g => g.attending) || invite.plus_one_name;
@@ -705,6 +753,7 @@
             document.getElementById('stat-total-invited').textContent = totalGuests;
             document.getElementById('stat-responded').textContent = respondedHouseholds + '/' + invites.length;
             document.getElementById('stat-attending').textContent = attendingGuests;
+            document.getElementById('stat-declined').textContent = declinedHouseholds;
             document.getElementById('stat-welcome-party').textContent = welcomePartyCount;
             document.getElementById('stat-wedding').textContent = weddingCount;
             document.getElementById('stat-helpers').textContent = helpersCount;
@@ -935,6 +984,131 @@
                 console.error('Error:', e);
                 statusEl.innerHTML = `<span style="color: #dc3545;">Error: ${e.message}</span>`;
                 sendBtn.disabled = false;
+            }
+        }
+        
+        // New Household functions
+        function openNewHouseholdModal() {
+            document.getElementById('new-household-name').value = '';
+            document.getElementById('new-household-email').value = '';
+            document.getElementById('new-household-guests').value = '';
+            document.getElementById('new-household-plus-one').checked = false;
+            document.getElementById('new-household-status').innerHTML = '';
+            document.getElementById('new-household-save-btn').disabled = false;
+            document.getElementById('new-household-modal').style.display = 'flex';
+            document.getElementById('new-household-name').focus();
+        }
+        
+        function closeNewHouseholdModal() {
+            document.getElementById('new-household-modal').style.display = 'none';
+        }
+        
+        function closeNewHouseholdModalIfOverlay(event) {
+            if (event.target.id === 'new-household-modal') {
+                closeNewHouseholdModal();
+            }
+        }
+        
+        async function saveNewHousehold() {
+            const householdName = document.getElementById('new-household-name').value.trim();
+            const email = document.getElementById('new-household-email').value.trim();
+            const guestsText = document.getElementById('new-household-guests').value.trim();
+            const allowsPlusOne = document.getElementById('new-household-plus-one').checked;
+            const statusEl = document.getElementById('new-household-status');
+            const saveBtn = document.getElementById('new-household-save-btn');
+            
+            // Validation
+            if (!householdName) {
+                statusEl.innerHTML = '<span style="color: #dc3545;">Please enter a household name</span>';
+                return;
+            }
+            if (!email || !email.includes('@')) {
+                statusEl.innerHTML = '<span style="color: #dc3545;">Please enter a valid email</span>';
+                return;
+            }
+            if (!guestsText) {
+                statusEl.innerHTML = '<span style="color: #dc3545;">Please enter at least one guest name</span>';
+                return;
+            }
+            
+            // Parse guest names (one per line)
+            const guestNames = guestsText.split('\n')
+                .map(line => line.trim())
+                .filter(line => line.length > 0)
+                .map(name => {
+                    const parts = name.split(' ');
+                    const firstName = parts[0] || '';
+                    const lastName = parts.slice(1).join(' ') || '';
+                    return { firstName, lastName };
+                });
+            
+            if (guestNames.length === 0) {
+                statusEl.innerHTML = '<span style="color: #dc3545;">Please enter at least one guest name</span>';
+                return;
+            }
+            
+            saveBtn.disabled = true;
+            statusEl.innerHTML = '<span style="color: #666;">Creating household...</span>';
+            
+            try {
+                // Create the invite
+                const { data: invite, error: inviteError } = await supabaseClient
+                    .from('invites')
+                    .insert({
+                        household_name: householdName,
+                        email: email,
+                        allows_plus_one: allowsPlusOne
+                    })
+                    .select()
+                    .single();
+                
+                if (inviteError) throw inviteError;
+                
+                // Create the guests
+                const guestsToInsert = guestNames.map(g => ({
+                    invite_id: invite.id,
+                    first_name: g.firstName,
+                    last_name: g.lastName
+                }));
+                
+                const { error: guestsError } = await supabaseClient
+                    .from('guests')
+                    .insert(guestsToInsert);
+                
+                if (guestsError) throw guestsError;
+                
+                statusEl.innerHTML = '<span style="color: #666;">Sending invitation...</span>';
+                
+                // Send the invitation
+                const response = await supabaseClient.functions.invoke('send-invitations', {
+                    body: {
+                        household_ids: [invite.id]
+                    }
+                });
+                
+                if (response.error) throw response.error;
+                
+                const result = response.data;
+                if (result.sent === 1) {
+                    statusEl.innerHTML = '<span style="color: #28a745;">✓ Household created and invitation sent!</span>';
+                    
+                    // Reload data
+                    setTimeout(() => {
+                        closeNewHouseholdModal();
+                        loadData();
+                    }, 1500);
+                } else {
+                    statusEl.innerHTML = '<span style="color: #ffc107;">⚠ Household created but invitation may not have sent. Check the dashboard.</span>';
+                    setTimeout(() => {
+                        closeNewHouseholdModal();
+                        loadData();
+                    }, 2000);
+                }
+                
+            } catch (e) {
+                console.error('Error:', e);
+                statusEl.innerHTML = `<span style="color: #dc3545;">Error: ${e.message}</span>`;
+                saveBtn.disabled = false;
             }
         }
         

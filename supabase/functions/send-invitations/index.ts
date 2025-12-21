@@ -38,7 +38,7 @@ serve(async (req) => {
         household_name,
         email,
         edit_token,
-        submitted_at,
+        invited_at,
         guests:guests(first_name, last_name)
       `)
       .order("household_name");
@@ -53,9 +53,9 @@ serve(async (req) => {
       query = query.limit(1);
     } else if (!household_ids || household_ids.length === 0) {
       // For bulk send (no specific IDs), only send to those who haven't been invited yet
-      query = query.is("submitted_at", null);
+      query = query.is("invited_at", null);
     }
-    // When household_ids are provided, send regardless of submitted_at status
+    // When household_ids are provided, send regardless of invited_at status
 
     const { data: invites, error } = await query;
 
@@ -94,6 +94,9 @@ serve(async (req) => {
     const results = [];
     let successCount = 0;
     let errorCount = 0;
+
+    // Helper to delay between requests (Resend rate limit: 2 req/sec)
+    const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
     // Send email to each household
     for (const invite of validInvites) {
@@ -252,6 +255,12 @@ serve(async (req) => {
           throw new Error(`Resend error: ${JSON.stringify(resendData)}`);
         }
 
+        // Mark as invited
+        await supabase
+          .from("invites")
+          .update({ invited_at: new Date().toISOString() })
+          .eq("id", invite.id);
+
         results.push({
           household: invite.household_name,
           email: recipientEmail,
@@ -259,6 +268,9 @@ serve(async (req) => {
           messageId: resendData.id,
         });
         successCount++;
+
+        // Rate limit: wait 600ms between sends (just under 2 req/sec)
+        await delay(600);
 
       } catch (emailError: any) {
         console.error(`Failed to send to ${invite.household_name}:`, emailError);
