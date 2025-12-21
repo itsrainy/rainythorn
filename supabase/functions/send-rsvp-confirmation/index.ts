@@ -80,36 +80,33 @@ serve(async (req) => {
     let guestListHtml = "";
 
     if (attendingGuests.length > 0) {
-      guestListHtml += `<p><strong>Attending:</strong></p><ul>`;
       for (const guest of attendingGuests) {
-        const dietary = guest.dietary_restrictions ? ` (${guest.dietary_restrictions})` : "";
-        guestListHtml += `<li>${guest.first_name} ${guest.last_name}${dietary}</li>`;
+        const dietary = guest.dietary_restrictions ? ` · ${guest.dietary_restrictions}` : "";
+        guestListHtml += `${guest.first_name} ${guest.last_name}${dietary}<br>`;
       }
-      guestListHtml += `</ul>`;
     }
 
     if (notAttendingGuests.length > 0) {
-      guestListHtml += `<p><strong>Unable to attend:</strong></p><ul>`;
       for (const guest of notAttendingGuests) {
-        guestListHtml += `<li>${guest.first_name} ${guest.last_name}</li>`;
+        guestListHtml += `<span style="color: #a89080;">${guest.first_name} ${guest.last_name} (Unable to attend)</span><br>`;
       }
-      guestListHtml += `</ul>`;
     }
 
     // Plus one
     if (data.plus_one_name) {
-      const dietary = data.plus_one_dietary ? ` (${data.plus_one_dietary})` : "";
-      guestListHtml += `<p><strong>Additional guest:</strong> ${data.plus_one_name}${dietary}</p>`;
+      const dietary = data.plus_one_dietary ? ` · ${data.plus_one_dietary}` : "";
+      guestListHtml += `${data.plus_one_name}${dietary}<br>`;
     }
 
-    // Events
-    const events: string[] = [];
-    if (data.welcome_party) events.push("Welcome Party (May 22nd)");
-    if (data.wedding) events.push("Wedding Ceremony & Reception (May 23rd)");
-
-    const eventsHtml = events.length > 0
-      ? `<p><strong>Events:</strong> ${events.join(", ")}</p>`
-      : "";
+    // Events attending
+    let eventsHtml = "";
+    if (data.welcome_party && data.wedding) {
+      eventsHtml = "Welcome Party & Wedding";
+    } else if (data.welcome_party) {
+      eventsHtml = "Welcome Party Only";
+    } else if (data.wedding) {
+      eventsHtml = "Wedding Only";
+    }
 
     const editUrl = `https://rainythorn.wedding/rsvp.html?token=${data.edit_token}`;
 
@@ -118,45 +115,110 @@ serve(async (req) => {
 <html>
 <head>
   <style>
-    body { font-family: Georgia, serif; color: #5c4a3d; line-height: 1.6; max-width: 600px; margin: 0 auto; padding: 20px; }
-    h1 { color: #8b7355; font-size: 24px; }
-    .header { text-align: center; padding: 20px 0; border-bottom: 2px solid #d4c4b0; margin-bottom: 20px; }
-    .content { padding: 20px 0; }
-    .events { background: #f5e6d3; padding: 15px; border-radius: 8px; margin: 20px 0; }
-    .edit-link { display: inline-block; background: #8b7355; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 20px 0; }
-    .footer { border-top: 2px solid #d4c4b0; padding-top: 20px; margin-top: 30px; font-size: 14px; color: #888; }
-    ul { margin: 10px 0; padding-left: 20px; }
+    body { 
+      font-family: Georgia, 'Times New Roman', serif; 
+      color: #5c4a3d; 
+      line-height: 1.8; 
+      max-width: 500px; 
+      margin: 0 auto; 
+      padding: 40px 20px;
+      background: #fefefe;
+      text-align: center;
+    }
+    .confirmation {
+      padding: 20px 0;
+    }
+    .preheader {
+      font-size: 14px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #a89080;
+      margin-bottom: 8px;
+    }
+    .title { 
+      font-size: 28px; 
+      color: #6b5b4f;
+      margin: 0 0 30px 0;
+      font-weight: normal;
+    }
+    .divider {
+      margin: 30px 0;
+      font-size: 16px;
+      letter-spacing: 3px;
+      color: #7a8471;
+    }
+    .section {
+      margin: 35px 0;
+    }
+    .section-label {
+      font-size: 13px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #8b7355;
+      margin-bottom: 12px;
+    }
+    .section-content {
+      font-size: 16px;
+      color: #5c4a3d;
+      line-height: 1.7;
+    }
+    .edit-button { 
+      display: inline-block; 
+      background: #8b7355; 
+      color: white !important; 
+      padding: 14px 50px; 
+      text-decoration: none; 
+      font-size: 13px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin: 35px 0;
+    }
+    .footer {
+      margin-top: 40px;
+      padding-top: 30px;
+      border-top: 1px solid #e8e0d8;
+      font-size: 13px;
+      color: #a89080;
+      line-height: 2;
+    }
+    .footer a {
+      color: #8b7355;
+      text-decoration: none;
+    }
   </style>
 </head>
 <body>
-  <div class="header">
-    <h1>RSVP Confirmed</h1>
-    <p>Rainy & Thorn's Wedding</p>
-  </div>
-
-  <div class="content">
-    <p>Dear ${data.household_name},</p>
-
-    <p>Thank you for your RSVP! Here's a summary of your response:</p>
-
-    ${guestListHtml}
-
-    <div class="events">
-      ${eventsHtml}
+  <div class="confirmation">
+    <p class="preheader">RSVP Confirmed</p>
+    <h1 class="title">Thank You!</h1>
+    <p class="divider">─── ◇ ───</p>
+    
+    <div class="section">
+      <p class="section-label">Your Party</p>
+      <p class="section-content">
+        ${guestListHtml}
+      </p>
     </div>
-
-    <p>Need to make changes? You can update your response anytime before <strong>April 23, 2026</strong>:</p>
-
-    <a href="${editUrl}" class="edit-link">Edit Your RSVP</a>
-
-    <p>We can't wait to celebrate with you!</p>
-
-    <p>With love,<br>Rainy & Thorn</p>
-  </div>
-
-  <div class="footer">
-    <p>May 23rd, 2026 | Pittsburgh, PA</p>
-    <p><a href="https://rainythorn.wedding">rainythorn.wedding</a></p>
+    
+    ${eventsHtml ? `
+    <div class="section">
+      <p class="section-label">Attending</p>
+      <p class="section-content">${eventsHtml}</p>
+    </div>
+    ` : ''}
+    
+    <p style="font-size: 14px; color: #a89080; margin: 30px 0;">
+      Need to make changes?<br>
+      You can update your RSVP anytime before April 23rd.
+    </p>
+    
+    <a href="${editUrl}" class="edit-button">Edit RSVP</a>
+    
+    <div class="footer">
+      <p>We can't wait to celebrate with you!</p>
+      <p>Rainy & Thorn</p>
+      <p><a href="https://rainythorn.wedding">rainythorn.wedding</a></p>
+    </div>
   </div>
 </body>
 </html>
