@@ -11,3 +11,8 @@ supabase/.temp
 # Private documentation
 DEPLOYMENT.md
 guest-import.sql
+opus45securityaudit.md
+
+# SQL files with real guest data (keep schema files, exclude imports/test data)
+# supabase-schema.sql and supabase-setup.sql are fine (no real data)
+test-invites.sql
