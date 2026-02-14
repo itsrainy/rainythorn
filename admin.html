@@ -586,6 +586,47 @@
             background: #e3f2fd;
             color: #1565c0;
         }
+        
+        /* Follow-Up Household List */
+        .follow-up-row {
+            display: flex;
+            align-items: center;
+            padding: 10px 15px;
+            border-bottom: 1px solid var(--border-color);
+            gap: 12px;
+            font-size: 0.9rem;
+        }
+        
+        .follow-up-row:last-child {
+            border-bottom: none;
+        }
+        
+        .follow-up-row:hover {
+            background: #fafafa;
+        }
+        
+        .follow-up-row input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            flex-shrink: 0;
+        }
+        
+        .follow-up-row .fu-name {
+            font-weight: 600;
+            min-width: 160px;
+        }
+        
+        .follow-up-row .fu-status {
+            font-size: 0.8rem;
+            flex-shrink: 0;
+        }
+        
+        .follow-up-row .fu-sent {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-left: auto;
+            flex-shrink: 0;
+        }
     </style>
 </head>
 <body style="background: #f8f6f3;">
@@ -607,42 +648,43 @@
         <!-- Stats -->
         <div class="stats-grid">
             <div class="stat-card">
-                <div class="number" id="stat-total-invited">-</div>
-                <div class="label">Total Invited</div>
+                <div class="number" id="stat-invited">-</div>
+                <div class="label">Invited</div>
             </div>
             <div class="stat-card">
-                <div class="number" id="stat-responded">-</div>
-                <div class="label">Households Responded</div>
+                <div class="number" id="stat-coming">-</div>
+                <div class="label">Coming</div>
             </div>
             <div class="stat-card">
-                <div class="number" id="stat-attending">-</div>
-                <div class="label">Guests Attending</div>
+                <div class="number" id="stat-not-coming">-</div>
+                <div class="label">Not Coming</div>
             </div>
             <div class="stat-card">
-                <div class="number" id="stat-declined">-</div>
-                <div class="label">Declined</div>
-            </div>
-            <div class="stat-card">
-                <div class="number" id="stat-welcome-party">-</div>
-                <div class="label">Welcome Party</div>
-            </div>
-            <div class="stat-card">
-                <div class="number" id="stat-wedding">-</div>
-                <div class="label">Wedding</div>
-            </div>
-            <div class="stat-card">
-                <div class="number" id="stat-helpers">-</div>
-                <div class="label">Setup Helpers</div>
+                <div class="number" id="stat-awaiting">-</div>
+                <div class="label">Awaiting RSVP</div>
             </div>
         </div>
         
         <!-- Follow-Up Email Section -->
         <div class="follow-up-section" id="follow-up-section">
-            <h2>📬 Send Follow-Up Email</h2>
-            <p>Send a follow-up to all guests with lodging info and an RSVP reminder (or confirmation for those who've already responded). Guests who declined are automatically skipped.</p>
-            <div class="follow-up-actions">
-                <button class="btn-follow-up secondary" onclick="sendFollowUp('test')">🧪 Send Test</button>
-                <button class="btn-follow-up primary" id="btn-send-all-followup" onclick="confirmSendAllFollowUps()">📨 Send to All Guests</button>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 10px;">
+                <div>
+                    <h2>📬 Send Follow-Up Email</h2>
+                    <p>Select households to send a follow-up with RSVP reminder or lodging info. Declined households are hidden.</p>
+                </div>
+                <div class="follow-up-actions">
+                    <button class="btn-follow-up secondary" onclick="sendFollowUpTest()">🧪 Send Test</button>
+                    <button class="btn-follow-up primary" id="btn-send-selected-followup" onclick="sendFollowUpToSelected()" disabled>📨 Send to Selected (<span id="follow-up-selected-count">0</span>)</button>
+                </div>
+            </div>
+            <div style="margin: 10px 0; display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                <button class="btn-follow-up secondary" style="padding: 6px 12px; font-size: 0.8rem;" onclick="selectAllFollowUp(true)">Select All</button>
+                <button class="btn-follow-up secondary" style="padding: 6px 12px; font-size: 0.8rem;" onclick="selectAllFollowUp(false)">Deselect All</button>
+                <button class="btn-follow-up secondary" style="padding: 6px 12px; font-size: 0.8rem;" onclick="selectNotYetSent()">Select Not Yet Sent</button>
+                <span style="font-size: 0.85rem; color: var(--text-muted);" id="follow-up-summary"></span>
+            </div>
+            <div id="follow-up-list" style="max-height: 500px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: var(--border-radius);">
+                <div class="loading">Loading...</div>
             </div>
             <div class="follow-up-status" id="follow-up-status"></div>
         </div>
@@ -875,6 +917,7 @@
                 renderNeedsEmail(invites);
                 renderActivityFeed(invites);
                 renderGuestTable(invites);
+                renderFollowUpList(invites);
                 
             } catch (e) {
                 console.error('Error loading data:', e);
@@ -883,58 +926,35 @@
         
         function updateStats(invites) {
             let totalGuests = 0;
-            let respondedHouseholds = 0;
-            let attendingGuests = 0;
-            let declinedHouseholds = 0;
-            let welcomePartyCount = 0;
-            let weddingCount = 0;
-            let helpersCount = 0;
+            let possiblePlusOnes = 0;
+            let comingGuests = 0;
+            let notComingGuests = 0;
+            let awaitingHouseholds = 0;
             
             invites.forEach(invite => {
                 const guestCount = invite.guests?.length || 0;
                 totalGuests += guestCount;
                 
+                if (invite.allows_plus_one) possiblePlusOnes++;
+                
                 if (invite.submitted_at) {
-                    respondedHouseholds++;
-                    
-                    // Count attending guests
-                    let householdAttending = 0;
                     invite.guests?.forEach(g => {
-                        if (g.attending) {
-                            attendingGuests++;
-                            householdAttending++;
-                        }
+                        if (g.attending) comingGuests++;
+                        else if (g.attending === false) notComingGuests++;
                     });
-                    
-                    // Count plus ones
-                    if (invite.plus_one_name) {
-                        attendingGuests++;
-                        householdAttending++;
-                    }
-                    
-                    // Check if this household declined (no one attending)
-                    if (householdAttending === 0) {
-                        declinedHouseholds++;
-                    }
-                    
-                    // Event counts (per household attending)
-                    const anyoneAttending = invite.guests?.some(g => g.attending) || invite.plus_one_name;
-                    if (anyoneAttending) {
-                        if (invite.welcome_party) welcomePartyCount += invite.guests?.filter(g => g.attending).length + (invite.plus_one_name ? 1 : 0);
-                        if (invite.wedding) weddingCount += invite.guests?.filter(g => g.attending).length + (invite.plus_one_name ? 1 : 0);
-                    }
-                    
-                    if (invite.setup_teardown_interest) helpersCount++;
+                    if (invite.plus_one_name) comingGuests++;
+                } else {
+                    awaitingHouseholds++;
                 }
             });
             
-            document.getElementById('stat-total-invited').textContent = totalGuests;
-            document.getElementById('stat-responded').textContent = respondedHouseholds + '/' + invites.length;
-            document.getElementById('stat-attending').textContent = attendingGuests;
-            document.getElementById('stat-declined').textContent = declinedHouseholds;
-            document.getElementById('stat-welcome-party').textContent = welcomePartyCount;
-            document.getElementById('stat-wedding').textContent = weddingCount;
-            document.getElementById('stat-helpers').textContent = helpersCount;
+            const invitedText = possiblePlusOnes > 0 
+                ? `${totalGuests} <span style="font-size: 1rem; color: var(--text-muted); font-weight: normal;">+${possiblePlusOnes}</span>`
+                : `${totalGuests}`;
+            document.getElementById('stat-invited').innerHTML = invitedText;
+            document.getElementById('stat-coming').textContent = comingGuests;
+            document.getElementById('stat-not-coming').textContent = notComingGuests;
+            document.getElementById('stat-awaiting').textContent = awaitingHouseholds;
         }
         
         function renderActivityFeed(invites) {
@@ -1579,59 +1599,11 @@
         }
         
         // Follow-Up Email functions
-        async function sendFollowUp(mode, householdIds) {
-            const statusEl = document.getElementById('follow-up-status');
-            const sendAllBtn = document.getElementById('btn-send-all-followup');
+        function renderFollowUpList(invites) {
+            const container = document.getElementById('follow-up-list');
             
-            statusEl.className = 'follow-up-status visible info';
-            statusEl.innerHTML = mode === 'test' 
-                ? '🔄 Sending test follow-up...' 
-                : '🔄 Sending follow-ups to all guests... This may take a moment.';
-            sendAllBtn.disabled = true;
-            
-            try {
-                const body = { mode };
-                if (mode === 'test') {
-                    const testEmail = prompt('Enter YOUR email address to send a test follow-up to:');
-                    if (!testEmail || !testEmail.includes('@')) {
-                        statusEl.className = 'follow-up-status visible error';
-                        statusEl.innerHTML = 'Test cancelled — a valid email address is required.';
-                        sendAllBtn.disabled = false;
-                        return;
-                    }
-                    body.test_email = testEmail.trim();
-                }
-                if (householdIds) {
-                    body.household_ids = householdIds;
-                }
-                
-                const response = await supabaseClient.functions.invoke('send-follow-up', { body });
-                
-                if (response.error) throw response.error;
-                
-                const result = response.data;
-                if (result.sent > 0) {
-                    let msg = `✓ Follow-up sent to ${result.sent} household${result.sent > 1 ? 's' : ''}!`;
-                    if (result.failed > 0) msg += ` (${result.failed} failed)`;
-                    if (result.skippedDeclined > 0) msg += ` · ${result.skippedDeclined} declined households skipped`;
-                    statusEl.className = 'follow-up-status visible success';
-                    statusEl.innerHTML = msg;
-                } else {
-                    statusEl.className = 'follow-up-status visible info';
-                    statusEl.innerHTML = `No follow-ups sent. ${result.message || ''}`;
-                }
-            } catch (e) {
-                console.error('Follow-up error:', e);
-                statusEl.className = 'follow-up-status visible error';
-                statusEl.innerHTML = `Error: ${e.message}`;
-            } finally {
-                sendAllBtn.disabled = false;
-            }
-        }
-        
-        function confirmSendAllFollowUps() {
-            // Count eligible households from loaded data
-            const eligible = allInvites.filter(inv => {
+            // Filter: exclude declined households and those without emails
+            const eligible = invites.filter(inv => {
                 if (!inv.email || inv.email.startsWith('NEEDS_EMAIL')) return false;
                 if (inv.submitted_at) {
                     const anyAttending = inv.guests?.some(g => g.attending) || !!inv.plus_one_name;
@@ -1639,24 +1611,151 @@
                 }
                 return true;
             });
-            const rsvpd = eligible.filter(i => i.submitted_at).length;
-            const notRsvpd = eligible.length - rsvpd;
             
-            const msg = `Send follow-up emails to ${eligible.length} households?\n\n` +
-                `• ${rsvpd} who have RSVPd (will get confirmation + lodging info)\n` +
-                `• ${notRsvpd} who haven't RSVPd yet (will get RSVP reminder + lodging info)\n\n` +
-                `Declined households will be skipped.\n\n` +
-                `⚠️ This will send REAL emails to REAL guests.`;
+            if (eligible.length === 0) {
+                container.innerHTML = '<div style="padding: 20px; text-align: center; color: var(--text-muted);">No eligible households</div>';
+                return;
+            }
             
-            if (confirm(msg)) {
-                const doubleCheck = prompt('Type SEND to confirm sending to all guests:');
-                if (doubleCheck !== 'SEND') {
-                    const statusEl = document.getElementById('follow-up-status');
-                    statusEl.className = 'follow-up-status visible error';
-                    statusEl.innerHTML = 'Send cancelled.';
-                    return;
-                }
-                sendFollowUp('all');
+            // Sort: not-yet-sent first, then by household name
+            eligible.sort((a, b) => {
+                const aSent = a.follow_up_sent_at ? 1 : 0;
+                const bSent = b.follow_up_sent_at ? 1 : 0;
+                if (aSent !== bSent) return aSent - bSent;
+                return (a.household_name || '').localeCompare(b.household_name || '');
+            });
+            
+            const sentCount = eligible.filter(i => i.follow_up_sent_at).length;
+            const notSentCount = eligible.length - sentCount;
+            document.getElementById('follow-up-summary').textContent = 
+                `${eligible.length} eligible · ${sentCount} sent · ${notSentCount} not yet sent`;
+            
+            container.innerHTML = eligible.map(inv => {
+                const hasRsvpd = !!inv.submitted_at;
+                const rsvpBadge = hasRsvpd 
+                    ? '<span class="status-badge yes" style="font-size: 0.75rem;">RSVPd</span>'
+                    : '<span class="status-badge pending" style="font-size: 0.75rem;">No RSVP</span>';
+                const sentInfo = inv.follow_up_sent_at 
+                    ? `✉️ ${new Date(inv.follow_up_sent_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`
+                    : '';
+                const guestNames = inv.guests?.map(g => g.first_name).join(', ') || '';
+                return `
+                    <div class="follow-up-row">
+                        <input type="checkbox" class="follow-up-cb" data-id="${inv.id}" onchange="updateFollowUpCount()">
+                        <span class="fu-name">${inv.household_name}</span>
+                        <span class="fu-status">${rsvpBadge}</span>
+                        <span style="font-size: 0.8rem; color: var(--text-muted);">${guestNames}</span>
+                        <span class="fu-sent">${sentInfo}</span>
+                    </div>
+                `;
+            }).join('');
+            
+            updateFollowUpCount();
+        }
+        
+        function updateFollowUpCount() {
+            const checked = document.querySelectorAll('.follow-up-cb:checked').length;
+            document.getElementById('follow-up-selected-count').textContent = checked;
+            document.getElementById('btn-send-selected-followup').disabled = checked === 0;
+        }
+        
+        function selectAllFollowUp(select) {
+            document.querySelectorAll('.follow-up-cb').forEach(cb => cb.checked = select);
+            updateFollowUpCount();
+        }
+        
+        function selectNotYetSent() {
+            document.querySelectorAll('.follow-up-cb').forEach(cb => {
+                const inviteId = cb.dataset.id;
+                const invite = allInvites.find(i => i.id === inviteId);
+                cb.checked = invite && !invite.follow_up_sent_at;
+            });
+            updateFollowUpCount();
+        }
+        
+        function getSelectedFollowUpIds() {
+            return Array.from(document.querySelectorAll('.follow-up-cb:checked')).map(cb => cb.dataset.id);
+        }
+        
+        async function sendFollowUpTest() {
+            const statusEl = document.getElementById('follow-up-status');
+            const testEmail = prompt('Enter YOUR email address to send a test follow-up to:');
+            if (!testEmail || !testEmail.includes('@')) {
+                statusEl.className = 'follow-up-status visible error';
+                statusEl.innerHTML = 'Test cancelled — a valid email address is required.';
+                return;
+            }
+            
+            statusEl.className = 'follow-up-status visible info';
+            statusEl.innerHTML = '🔄 Sending test follow-up...';
+            
+            try {
+                const response = await supabaseClient.functions.invoke('send-follow-up', {
+                    body: { mode: 'test', test_email: testEmail.trim() }
+                });
+                if (response.error) throw response.error;
+                const result = response.data;
+                statusEl.className = 'follow-up-status visible success';
+                statusEl.innerHTML = `✓ Test sent to ${testEmail} (${result.sent} variant${result.sent > 1 ? 's' : ''})`;
+            } catch (e) {
+                console.error('Follow-up test error:', e);
+                statusEl.className = 'follow-up-status visible error';
+                statusEl.innerHTML = `Error: ${e.message}`;
+            }
+        }
+        
+        async function sendFollowUpToSelected() {
+            const ids = getSelectedFollowUpIds();
+            if (ids.length === 0) return;
+            
+            const statusEl = document.getElementById('follow-up-status');
+            const sendBtn = document.getElementById('btn-send-selected-followup');
+            
+            // Count RSVPd vs not for the confirmation message
+            const selectedInvites = ids.map(id => allInvites.find(i => i.id === id)).filter(Boolean);
+            const rsvpd = selectedInvites.filter(i => i.submitted_at).length;
+            const notRsvpd = selectedInvites.length - rsvpd;
+            const alreadySent = selectedInvites.filter(i => i.follow_up_sent_at).length;
+            
+            let msg = `Send follow-up emails to ${ids.length} household${ids.length > 1 ? 's' : ''}?\n\n`;
+            if (rsvpd > 0) msg += `• ${rsvpd} who have RSVPd (confirmation + lodging info)\n`;
+            if (notRsvpd > 0) msg += `• ${notRsvpd} who haven't RSVPd yet (RSVP reminder)\n`;
+            if (alreadySent > 0) msg += `\n⚠️ ${alreadySent} of these already received a follow-up.\n`;
+            msg += `\nThis will send REAL emails.`;
+            
+            if (!confirm(msg)) return;
+            
+            const doubleCheck = prompt('Type SEND to confirm:');
+            if (doubleCheck !== 'SEND') {
+                statusEl.className = 'follow-up-status visible error';
+                statusEl.innerHTML = 'Send cancelled.';
+                return;
+            }
+            
+            sendBtn.disabled = true;
+            statusEl.className = 'follow-up-status visible info';
+            statusEl.innerHTML = `🔄 Sending follow-ups to ${ids.length} household${ids.length > 1 ? 's' : ''}... This may take a moment.`;
+            
+            try {
+                const response = await supabaseClient.functions.invoke('send-follow-up', {
+                    body: { mode: 'all', household_ids: ids }
+                });
+                if (response.error) throw response.error;
+                const result = response.data;
+                
+                let msg = `✓ Follow-up sent to ${result.sent} household${result.sent > 1 ? 's' : ''}!`;
+                if (result.failed > 0) msg += ` (${result.failed} failed)`;
+                statusEl.className = 'follow-up-status visible success';
+                statusEl.innerHTML = msg;
+                
+                // Reload data to update sent status
+                await loadData();
+            } catch (e) {
+                console.error('Follow-up error:', e);
+                statusEl.className = 'follow-up-status visible error';
+                statusEl.innerHTML = `Error: ${e.message}`;
+            } finally {
+                sendBtn.disabled = false;
             }
         }
         

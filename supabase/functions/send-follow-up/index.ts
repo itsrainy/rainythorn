@@ -6,7 +6,7 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
 const FROM_EMAIL = "Rainy & Thorn <invites@rainythorn.wedding>";
-const REPLY_TO_EMAIL = "rainythorn.wedding@gmail.com";
+const REPLY_TO_EMAIL = "invites@rainythorn.wedding";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -95,14 +95,19 @@ const emailStyles = `
       text-transform: uppercase;
       margin: 35px 0;
     }
-    .hotel-box {
-      background: #f8f5f0;
-      padding: 25px 20px;
-      margin: 25px 0;
-      text-align: center;
+    .lodging-link {
+      display: block;
+      margin: 20px 0;
     }
-    .hotel-box a {
+    .lodging-link a {
       color: #8b7355;
+      text-decoration: underline;
+      font-size: 16px;
+    }
+    .lodging-link .lodging-note {
+      font-size: 13px;
+      color: #a89080;
+      margin-top: 4px;
     }
     .footer {
       margin-top: 40px;
@@ -188,32 +193,45 @@ function buildRsvpConfirmationSection(
 }
 
 function buildLodgingSection(): string {
-  const hotelLink =
+  const trypLink =
     "https://www.wyndhamhotels.com/tryp/pittsburgh-pennsylvania/tryp-by-wyndham-pittsburgh-lawrenceville/rooms-rates?brand_id=WT&checkInDate=5/22/2026&checkOutDate=5/24/2026&children=0&groupCode=052126HAR&adults=1&rooms=1";
+  const airbnbLink =
+    "https://www.airbnb.com/s/Pittsburgh--PA/homes?checkin=2026-05-22&checkout=2026-05-24&adults=2";
+  const hotelsLink =
+    "https://www.google.com/travel/hotels/Lawrenceville+Pittsburgh+PA?q=hotels+near+lawrenceville+pittsburgh&g2lb=4814050&hl=en-US&gl=us&un=1&ap=MABoAQ&dates=2026-05-22_2026-05-24";
   return `
     <div class="section">
-      <p class="section-label">Hotel & Lodging</p>
+      <p class="section-label">Lodging</p>
       <p class="section-content">
-        Coming from out of town? We have a small block of rooms<br>
-        reserved for Friday & Saturday night at TRYP by Wyndham<br>
-        in Lawrenceville.
+        Coming from out of town? Here are some options
+        for the weekend of the wedding.
       </p>
-      <div class="hotel-box">
-        <p style="font-size: 14px; margin: 0 0 12px 0; color: #6b5b4f; font-weight: bold;">
-          TRYP by Wyndham Pittsburgh Lawrenceville
-        </p>
-        <p style="font-size: 14px; margin: 0 0 15px 0; color: #a89080;">
-          Friday, May 22 – Sunday, May 24
-        </p>
-        <a href="${hotelLink}" style="display: inline-block; background: #8b7355; color: white !important; padding: 10px 30px; text-decoration: none; font-size: 12px; letter-spacing: 2px; text-transform: uppercase;">Book Your Room</a>
+
+      <div class="lodging-link">
+        <a href="${trypLink}">TRYP by Wyndham Lawrenceville</a>
+        <p class="lodging-note">We have a small block of rooms reserved for May 22&ndash;24</p>
       </div>
-      <p class="section-content" style="font-size: 14px; color: #a89080;">
-        There are also plenty of Airbnbs in the<br>
-        Lawrenceville, Bloomfield, and Troy Hill areas<br>
-        as well as other hotel options nearby.
-      </p>
+
+      <div class="lodging-link">
+        <a href="${airbnbLink}">Airbnb</a>
+        <p class="lodging-note">Plenty of options in Lawrenceville, Bloomfield &amp; beyond</p>
+      </div>
+
+      <div class="lodging-link">
+        <a href="${hotelsLink}">Other Hotels</a>
+        <p class="lodging-note">More options nearby</p>
+      </div>
     </div>
   `;
+}
+
+function getGreetingName(invite: any): string {
+  const guests = invite.guests || [];
+  const firstNames = guests.map((g: any) => g.first_name);
+  if (firstNames.length === 0) return "";
+  if (firstNames.length === 1) return firstNames[0];
+  if (firstNames.length === 2) return `${firstNames[0]} & ${firstNames[1]}`;
+  return `${firstNames[0]}, ${firstNames.slice(1, -1).join(", ")} & ${firstNames[firstNames.length - 1]}`;
 }
 
 function buildFollowUpEmail(
@@ -224,6 +242,12 @@ function buildFollowUpEmail(
   const rsvpSection = hasRsvpd
     ? buildRsvpConfirmationSection(invite, invite.guests, rsvpUrl)
     : buildRsvpReminderSection(rsvpUrl);
+
+  const greeting = getGreetingName(invite);
+  const greetingLine = greeting ? `Dear ${greeting},` : "";
+  const introText = hasRsvpd
+    ? `Thank you for RSVPing! We're so excited to celebrate with you.<br>Here are a few details to help you plan.`
+    : `We're getting excited as the big day draws near!`;
 
   return `
 <!DOCTYPE html>
@@ -240,17 +264,19 @@ function buildFollowUpEmail(
     <p class="divider">─── ◇ ───</p>
 
     <div class="section">
+      ${greetingLine ? `<p class="section-content" style="font-size: 18px; margin-bottom: 15px;">${greetingLine}</p>` : ""}
       <p class="section-content">
-        We're getting excited as the big day draws near!<br>
-        Here are a few details to help you plan.
+        ${introText}
       </p>
     </div>
 
     ${rsvpSection}
 
+    ${hasRsvpd ? `
     <p class="divider">─── ◇ ───</p>
 
     ${buildLodgingSection()}
+    ` : ""}
 
     <p class="divider">─── ◇ ───</p>
 
@@ -347,9 +373,10 @@ serve(async (req) => {
       query = query.in("id", household_ids);
     }
 
-    // For test mode, only get one invite
+    // For test mode, get two invites: one that has RSVPd and one that hasn't,
+    // so both email variants can be previewed
     if (mode === "test") {
-      query = query.limit(1);
+      query = query.limit(20);
     }
 
     const { data: invites, error } = await query;
@@ -392,7 +419,16 @@ serve(async (req) => {
       return true;
     });
 
-    if (eligibleInvites.length === 0) {
+    // In test mode, pick one RSVPd invite and one non-RSVPd invite
+    // so you can preview both email variants
+    let invitesToSend = eligibleInvites;
+    if (mode === "test") {
+      const rsvpd = eligibleInvites.find((i: any) => i.submitted_at);
+      const notRsvpd = eligibleInvites.find((i: any) => !i.submitted_at);
+      invitesToSend = [rsvpd, notRsvpd].filter(Boolean) as any[];
+    }
+
+    if (invitesToSend.length === 0) {
       return new Response(
         JSON.stringify({
           success: true,
@@ -413,7 +449,7 @@ serve(async (req) => {
     const delay = (ms: number) =>
       new Promise((resolve) => setTimeout(resolve, ms));
 
-    for (const invite of eligibleInvites) {
+    for (const invite of invitesToSend) {
       try {
         const rsvpUrl = `https://rainythorn.wedding/rsvp.html?token=${invite.edit_token}`;
         const hasRsvpd = !!invite.submitted_at;
@@ -430,8 +466,8 @@ serve(async (req) => {
         const htmlBody = buildFollowUpEmail(invite, hasRsvpd, rsvpUrl);
 
         const subjectLine = hasRsvpd
-          ? "A Few Details for the Big Day!"
-          : "Reminder: We'd Love to Hear From You!";
+          ? "Rainy & Thorn Wedding: RSVP and Lodging"
+          : "Reminder to RSVP";
 
         // Send via Resend
         const res = await fetch("https://api.resend.com/emails", {
@@ -466,6 +502,14 @@ serve(async (req) => {
           messageId: resendData.id,
         });
         successCount++;
+
+        // Mark follow-up as sent (skip in test mode)
+        if (mode !== "test") {
+          await supabase
+            .from("invites")
+            .update({ follow_up_sent_at: new Date().toISOString() })
+            .eq("id", invite.id);
+        }
 
         // Rate limit: wait 600ms between sends
         await delay(600);
