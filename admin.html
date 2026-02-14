@@ -498,6 +498,94 @@
             background: #e3f2fd;
             color: #1565c0;
         }
+        
+        /* Follow-Up Section */
+        .follow-up-section {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            margin-bottom: 30px;
+            padding: 25px;
+        }
+        
+        .follow-up-section h2 {
+            font-family: 'Playfair Display', serif;
+            margin: 0 0 10px 0;
+            font-size: 1.3rem;
+        }
+        
+        .follow-up-section p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+        }
+        
+        .follow-up-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        
+        .btn-follow-up {
+            padding: 10px 20px;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+        
+        .btn-follow-up.primary {
+            background: var(--primary-color);
+            color: white;
+        }
+        
+        .btn-follow-up.primary:hover {
+            background: #7a6548;
+        }
+        
+        .btn-follow-up.secondary {
+            background: #f0f0f0;
+            color: var(--text-dark);
+            border: 1px solid var(--border-color);
+        }
+        
+        .btn-follow-up.secondary:hover {
+            background: #e4e4e4;
+        }
+        
+        .btn-follow-up:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .follow-up-status {
+            margin-top: 15px;
+            padding: 12px 16px;
+            border-radius: var(--border-radius);
+            font-size: 0.9rem;
+            display: none;
+        }
+        
+        .follow-up-status.visible {
+            display: block;
+        }
+        
+        .follow-up-status.success {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .follow-up-status.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .follow-up-status.info {
+            background: #e3f2fd;
+            color: #1565c0;
+        }
     </style>
 </head>
 <body style="background: #f8f6f3;">
@@ -546,6 +634,17 @@
                 <div class="number" id="stat-helpers">-</div>
                 <div class="label">Setup Helpers</div>
             </div>
+        </div>
+        
+        <!-- Follow-Up Email Section -->
+        <div class="follow-up-section" id="follow-up-section">
+            <h2>📬 Send Follow-Up Email</h2>
+            <p>Send a follow-up to all guests with lodging info and an RSVP reminder (or confirmation for those who've already responded). Guests who declined are automatically skipped.</p>
+            <div class="follow-up-actions">
+                <button class="btn-follow-up secondary" onclick="sendFollowUp('test')">🧪 Send Test</button>
+                <button class="btn-follow-up primary" id="btn-send-all-followup" onclick="confirmSendAllFollowUps()">📨 Send to All Guests</button>
+            </div>
+            <div class="follow-up-status" id="follow-up-status"></div>
         </div>
         
         <!-- Needs Email Section -->
@@ -1476,6 +1575,88 @@
                 console.error('Error:', e);
                 statusEl.className = 'modal-status error';
                 statusEl.innerHTML = `Error: ${e.message}`;
+            }
+        }
+        
+        // Follow-Up Email functions
+        async function sendFollowUp(mode, householdIds) {
+            const statusEl = document.getElementById('follow-up-status');
+            const sendAllBtn = document.getElementById('btn-send-all-followup');
+            
+            statusEl.className = 'follow-up-status visible info';
+            statusEl.innerHTML = mode === 'test' 
+                ? '🔄 Sending test follow-up...' 
+                : '🔄 Sending follow-ups to all guests... This may take a moment.';
+            sendAllBtn.disabled = true;
+            
+            try {
+                const body = { mode };
+                if (mode === 'test') {
+                    const testEmail = prompt('Enter YOUR email address to send a test follow-up to:');
+                    if (!testEmail || !testEmail.includes('@')) {
+                        statusEl.className = 'follow-up-status visible error';
+                        statusEl.innerHTML = 'Test cancelled — a valid email address is required.';
+                        sendAllBtn.disabled = false;
+                        return;
+                    }
+                    body.test_email = testEmail.trim();
+                }
+                if (householdIds) {
+                    body.household_ids = householdIds;
+                }
+                
+                const response = await supabaseClient.functions.invoke('send-follow-up', { body });
+                
+                if (response.error) throw response.error;
+                
+                const result = response.data;
+                if (result.sent > 0) {
+                    let msg = `✓ Follow-up sent to ${result.sent} household${result.sent > 1 ? 's' : ''}!`;
+                    if (result.failed > 0) msg += ` (${result.failed} failed)`;
+                    if (result.skippedDeclined > 0) msg += ` · ${result.skippedDeclined} declined households skipped`;
+                    statusEl.className = 'follow-up-status visible success';
+                    statusEl.innerHTML = msg;
+                } else {
+                    statusEl.className = 'follow-up-status visible info';
+                    statusEl.innerHTML = `No follow-ups sent. ${result.message || ''}`;
+                }
+            } catch (e) {
+                console.error('Follow-up error:', e);
+                statusEl.className = 'follow-up-status visible error';
+                statusEl.innerHTML = `Error: ${e.message}`;
+            } finally {
+                sendAllBtn.disabled = false;
+            }
+        }
+        
+        function confirmSendAllFollowUps() {
+            // Count eligible households from loaded data
+            const eligible = allInvites.filter(inv => {
+                if (!inv.email || inv.email.startsWith('NEEDS_EMAIL')) return false;
+                if (inv.submitted_at) {
+                    const anyAttending = inv.guests?.some(g => g.attending) || !!inv.plus_one_name;
+                    if (!anyAttending) return false;
+                }
+                return true;
+            });
+            const rsvpd = eligible.filter(i => i.submitted_at).length;
+            const notRsvpd = eligible.length - rsvpd;
+            
+            const msg = `Send follow-up emails to ${eligible.length} households?\n\n` +
+                `• ${rsvpd} who have RSVPd (will get confirmation + lodging info)\n` +
+                `• ${notRsvpd} who haven't RSVPd yet (will get RSVP reminder + lodging info)\n\n` +
+                `Declined households will be skipped.\n\n` +
+                `⚠️ This will send REAL emails to REAL guests.`;
+            
+            if (confirm(msg)) {
+                const doubleCheck = prompt('Type SEND to confirm sending to all guests:');
+                if (doubleCheck !== 'SEND') {
+                    const statusEl = document.getElementById('follow-up-status');
+                    statusEl.className = 'follow-up-status visible error';
+                    statusEl.innerHTML = 'Send cancelled.';
+                    return;
+                }
+                sendFollowUp('all');
             }
         }
         
